@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-import { Trash2, Brain, User, BarChart3 } from 'lucide-react-native';
+import { Trash2, Brain, User, ChartBar as BarChart3 } from 'lucide-react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
