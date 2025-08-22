@@ -9,7 +9,6 @@ import {
   Alert,
   FlatList,
 } from 'react-native'
-import { Picker } from '@react-native-picker/picker'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { WasteRecord } from '@/types/database'
@@ -20,7 +19,8 @@ export default function WasteScreen() {
   const [wasteAmount, setWasteAmount] = useState('')
   const [wasteUnit, setWasteUnit] = useState<'pieces' | 'percentage'>('pieces')
   const [purchaseAmount, setPurchaseAmount] = useState('')
-  const [purchaseUnit, setPurchaseUnit] = useState('個')
+  const [purchaseUnit, setPurchaseUnit] = useState('')
+  const [remarks, setRemarks] = useState('')
   const [loading, setLoading] = useState(false)
   const [wasteRecords, setWasteRecords] = useState<WasteRecord[]>([])
 
@@ -47,7 +47,7 @@ export default function WasteScreen() {
 
   const saveWasteRecord = async () => {
     if (!user || !foodName || !wasteAmount || !purchaseAmount) {
-      Alert.alert('エラー', 'すべての項目を入力してください')
+      Alert.alert('エラー', '必須項目を入力してください')
       return
     }
 
@@ -62,16 +62,19 @@ export default function WasteScreen() {
           waste_unit: wasteUnit,
           purchase_amount: parseFloat(purchaseAmount),
           purchase_unit: purchaseUnit,
-          waste_date: new Date().toISOString(),
+          waste_date: new Date().toISOString().split('T')[0],
         })
 
       if (error) {
         Alert.alert('エラー', '廃棄記録の保存に失敗しました')
       } else {
         Alert.alert('成功', '廃棄記録を保存しました')
+        // フォームをリセット
         setFoodName('')
         setWasteAmount('')
         setPurchaseAmount('')
+        setPurchaseUnit('')
+        setRemarks('')
         loadWasteRecords()
       }
     } catch (error) {
@@ -84,10 +87,8 @@ export default function WasteScreen() {
   const renderWasteRecord = ({ item }: { item: WasteRecord }) => (
     <View style={styles.recordItem}>
       <Text style={styles.recordTitle}>{item.food_name}</Text>
-      <Text style={styles.recordDetail}>
-        廃棄量: {item.waste_amount}{item.waste_unit === 'pieces' ? '個' : '%'}
-      </Text>
-      <Text style={styles.recordDetail}>
+      <Text style={styles.recordDetails}>
+        廃棄量: {item.waste_amount}{item.waste_unit === 'pieces' ? '個' : '%'} / 
         購入量: {item.purchase_amount}{item.purchase_unit}
       </Text>
       <Text style={styles.recordDate}>
@@ -100,22 +101,22 @@ export default function WasteScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>廃棄記録</Text>
-        <Text style={styles.subtitle}>食材の廃棄を記録して改善につなげましょう</Text>
+        <Text style={styles.subtitle}>食品の廃棄状況を記録しましょう</Text>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>食材名</Text>
+          <Text style={styles.label}>廃棄する食品 *</Text>
           <TextInput
             style={styles.input}
             value={foodName}
             onChangeText={setFoodName}
-            placeholder="例: にんじん"
+            placeholder="例: 鶏むね肉"
           />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>廃棄量</Text>
+          <Text style={styles.label}>廃棄量 *</Text>
           <View style={styles.row}>
             <TextInput
               style={[styles.input, styles.inputSmall]}
@@ -124,21 +125,23 @@ export default function WasteScreen() {
               placeholder="数量"
               keyboardType="numeric"
             />
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={wasteUnit}
-                onValueChange={setWasteUnit}
-                style={styles.picker}
-              >
-                <Picker.Item label="個" value="pieces" />
-                <Picker.Item label="%" value="percentage" />
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={[styles.unitButton, wasteUnit === 'pieces' && styles.unitButtonActive]}
+              onPress={() => setWasteUnit('pieces')}
+            >
+              <Text style={[styles.unitText, wasteUnit === 'pieces' && styles.unitTextActive]}>個</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.unitButton, wasteUnit === 'percentage' && styles.unitButtonActive]}
+              onPress={() => setWasteUnit('percentage')}
+            >
+              <Text style={[styles.unitText, wasteUnit === 'percentage' && styles.unitTextActive]}>%</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>購入時の認識量</Text>
+          <Text style={styles.label}>購入量・金額 *</Text>
           <View style={styles.row}>
             <TextInput
               style={[styles.input, styles.inputSmall]}
@@ -151,9 +154,22 @@ export default function WasteScreen() {
               style={[styles.input, styles.inputSmall]}
               value={purchaseUnit}
               onChangeText={setPurchaseUnit}
-              placeholder="単位"
+              placeholder="単位 (g, 円など)"
             />
           </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>備考</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            value={remarks}
+            onChangeText={setRemarks}
+            placeholder="廃棄理由など..."
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
         </View>
 
         <TouchableOpacity
@@ -162,7 +178,7 @@ export default function WasteScreen() {
           disabled={loading}
         >
           <Text style={styles.buttonText}>
-            {loading ? '保存中...' : '廃棄記録を保存'}
+            {loading ? '保存中...' : '保存する'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -228,19 +244,33 @@ const styles = StyleSheet.create({
   inputSmall: {
     flex: 1,
   },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
   row: {
     flexDirection: 'row',
     gap: 12,
+    alignItems: 'center',
   },
-  pickerContainer: {
-    flex: 1,
+  unitButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     borderRadius: 8,
     backgroundColor: '#f7fafc',
   },
-  picker: {
-    height: 42,
+  unitButtonActive: {
+    backgroundColor: '#4299e1',
+    borderColor: '#4299e1',
+  },
+  unitText: {
+    fontSize: 16,
+    color: '#4a5568',
+  },
+  unitTextActive: {
+    color: 'white',
   },
   button: {
     backgroundColor: '#4299e1',
@@ -273,6 +303,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
+    marginBottom: 8,
   },
   recordTitle: {
     fontSize: 16,
@@ -280,14 +311,13 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     marginBottom: 4,
   },
-  recordDetail: {
+  recordDetails: {
     fontSize: 14,
     color: '#4a5568',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   recordDate: {
     fontSize: 12,
     color: '#718096',
-    marginTop: 4,
   },
 })

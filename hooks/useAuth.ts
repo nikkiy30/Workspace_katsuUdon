@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { Session, User } from '@supabase/supabase-js'
+import { useEffect, useState } from 'react'
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
@@ -48,6 +48,15 @@ export function useAuth() {
     return { error }
   }
 
+  const signInAnonymously = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously()
+      return { data, error }
+    } catch (error) {
+      return { data: null, error }
+    }
+  }
+
   return {
     session,
     user,
@@ -55,5 +64,6 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    signInAnonymously,
   }
 }

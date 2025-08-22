@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from 'react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -20,7 +20,6 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
           default: {},
@@ -29,12 +28,12 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'ダッシュボード',
+          title: 'ホーム',
           tabBarIcon: ({ color }) => <BarChart3 size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="waste"
+        name="wasteInput"
         options={{
           title: '廃棄記録',
           tabBarIcon: ({ color }) => <Trash2 size={24} color={color} />,

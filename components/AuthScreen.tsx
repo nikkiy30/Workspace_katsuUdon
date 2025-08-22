@@ -1,22 +1,22 @@
+import { useAuth } from '@/hooks/useAuth'
 import React, { useState } from 'react'
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native'
-import { useAuth } from '@/hooks/useAuth'
 
 export function AuthScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, signInAnonymously } = useAuth()
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -34,6 +34,21 @@ export function AuthScreen() {
         Alert.alert('エラー', error.message)
       } else if (isSignUp) {
         Alert.alert('成功', 'アカウントが作成されました')
+      }
+    } catch (error) {
+      Alert.alert('エラー', '予期しないエラーが発生しました')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAnonymousAuth = async () => {
+    setLoading(true)
+    try {
+      const { error } = await signInAnonymously()
+      
+      if (error) {
+        Alert.alert('エラー', error.message)
       }
     } catch (error) {
       Alert.alert('エラー', '予期しないエラーが発生しました')
@@ -76,6 +91,16 @@ export function AuthScreen() {
           >
             <Text style={styles.buttonText}>
               {loading ? '処理中...' : isSignUp ? 'アカウント作成' : 'ログイン'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.anonymousButton, loading && styles.buttonDisabled]}
+            onPress={handleAnonymousAuth}
+            disabled={loading}
+          >
+            <Text style={styles.anonymousButtonText}>
+              ゲストとして利用する
             </Text>
           </TouchableOpacity>
           
@@ -134,10 +159,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  anonymousButton: {
+    backgroundColor: '#68d391',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   buttonDisabled: {
     backgroundColor: '#a0aec0',
   },
   buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  anonymousButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
