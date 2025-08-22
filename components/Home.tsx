@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import { Bell, ChevronRight, Home as HomeIcon, MoreHorizontal } from "lucide-react-native";
-import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Bell, ChevronRight, Home as HomeIcon, MoreHorizontal } from "lucide-react-native";
 import React from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
   { icon: HomeIcon, label: "ホーム" },
@@ -34,7 +34,7 @@ export const Screen = () => {
         </View>
 
         <View style={styles.cardMedium}>
-          <ThemedText>カレンダーor本日の予定</ThemedText>
+          <ThemedText>カレンダー</ThemedText>
         </View>
 
         <View style={styles.actionsRow}>
