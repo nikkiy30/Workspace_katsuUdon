@@ -123,7 +123,6 @@ const styles = StyleSheet.create({
     borderColor: "#156486",
     backgroundColor: "#fafeff",
     alignItems: "center",
-    justifyContent: "center",
     paddingHorizontal: 8,
     flexDirection: "row",
     justifyContent: "space-between",
