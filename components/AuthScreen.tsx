@@ -41,6 +41,8 @@ export function AuthScreen() {
     } finally {
       setLoading(false)
     }
+    // TODO. サインイン時のみにオンボーディング画面へ遷移させる
+    useRouter().push('/question1')
   }
 
   const handleAnonymousAuth = async () => {
