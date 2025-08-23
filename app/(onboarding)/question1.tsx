@@ -1,196 +1,429 @@
-import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native'
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-const FOOD_OPTIONS = [
-  '野菜・果物',
-  '肉類',
-  '魚・海鮮',
-  '米・パン・麺類',
-  '乳製品',
-  '調味料・スパイス',
-  'お菓子・デザート',
-  '飲み物',
-]
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-export default function Question1Screen() {
-  const router = useRouter()
-  const [selectedFoods, setSelectedFoods] = useState<string[]>([])
+interface Occupation {
+  id: string;
+  label: string;
+  selected?: boolean;
+}
 
-  const toggleFood = (food: string) => {
-    setSelectedFoods(prev => 
-      prev.includes(food) 
-        ? prev.filter(f => f !== food)
-        : [...prev, food]
-    )
-  }
+interface ProgressDot {
+  active: boolean;
+}
 
-  const handleNext = () => {
-    if (selectedFoods.length === 0) {
-      Alert.alert('選択してください', '少なくとも1つの食品カテゴリを選択してください')
-      return
-    }
+const App: React.FC = () => {
+  const [selectedOccupation, setSelectedOccupation] = useState<string>('職業');
 
-    // 選択した内容は後でプロフィール機能実装時に保存予定
-    console.log('Selected foods:', selectedFoods)
+  const occupations: Occupation[] = [
+    { id: 'student', label: '学生' },
+    { id: 'housewife', label: '専業主婦' },
+    { id: 'parttime', label: 'パート・\nアルバイト' },
+    { id: 'occupation', label: '職業', selected: true },
+    { id: 'civil', label: '公務員' },
+    { id: 'selfemployed', label: '自営業' },
+    { id: 'others', label: 'その他' },
+  ];
 
-    router.push('/question2')
-  }
+  const progressDots: ProgressDot[] = [
+    { active: true },
+    { active: false },
+    { active: false },
+    { active: false },
+  ];
 
-  const handleBack = () => {
-    router.back()
-  }
+  const handleOccupationSelect = (occupationId: string) => {
+    setSelectedOccupation(occupationId);
+    useRouter().push('/(onboarding)/question2');
+  };
+
+  const HexagonButton: React.FC<{
+    occupation: Occupation;
+    onPress: () => void;
+  }> = ({ occupation, onPress }) => (
+    <TouchableOpacity
+      style={styles.hexagonContainer}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`職業選択: ${occupation.label}`}
+      accessibilityHint="タップして選択してください"
+    >
+      <View
+        style={[
+          styles.hexagon,
+          occupation.selected || selectedOccupation === occupation.id
+            ? styles.hexagonSelected
+            : styles.hexagonDefault,
+        ]}
+      >
+        <Text
+          style={[
+            styles.hexagonText,
+            occupation.selected || selectedOccupation === occupation.id
+              ? styles.hexagonTextSelected
+              : styles.hexagonTextDefault,
+          ]}
+        >
+          {occupation.label}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Text style={styles.backButtonText}>← 戻る</Text>
-        </TouchableOpacity>
-        <Text style={styles.progress}>1/3</Text>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>質問1</Text>
-        <Text style={styles.question}>
-          よく食べる食品カテゴリを{'\n'}
-          選択してください
-        </Text>
-        <Text style={styles.subtitle}>
-          （複数選択可）
-        </Text>
-
-        <View style={styles.optionsContainer}>
-          {FOOD_OPTIONS.map((food) => (
-            <TouchableOpacity
-              key={food}
-              style={[
-                styles.option,
-                selectedFoods.includes(food) && styles.optionSelected
-              ]}
-              onPress={() => toggleFood(food)}
-            >
-              <Text style={[
-                styles.optionText,
-                selectedFoods.includes(food) && styles.optionTextSelected
-              ]}>
-                {food}
-              </Text>
-            </TouchableOpacity>
-          ))}
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fafeff" />
+      
+      {/* Main Background */}
+      <View style={styles.mainBackground}>
+        {/* Header with notification bell */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            accessibilityRole="button"
+            accessibilityLabel="通知"
+          >
+            <Ionicons name="notifications" size={22} color="#ffffff" />
+          </TouchableOpacity>
         </View>
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[
-            styles.nextButton,
-            selectedFoods.length === 0 && styles.nextButtonDisabled
-          ]} 
-          onPress={handleNext}
-          disabled={selectedFoods.length === 0}
-        >
-          <Text style={styles.nextButtonText}>次へ</Text>
-        </TouchableOpacity>
+        {/* Date Badge */}
+        <View style={styles.dateBadge}>
+          <Text style={styles.dateText}>8/21(木)</Text>
+        </View>
+
+        {/* Main Content Cards */}
+        <View style={styles.contentArea}>
+          <View style={styles.mainCard}>
+            <Text style={styles.cardText}>廃棄量、節約量の成果？</Text>
+          </View>
+
+          <View style={styles.calendarCard}>
+            <Text style={styles.cardText}>カレンダーor本日の予定</Text>
+          </View>
+
+          {/* Bottom Action Cards */}
+          <View style={styles.actionCardsContainer}>
+            <TouchableOpacity
+              style={styles.actionCard}
+              accessibilityRole="button"
+              accessibilityLabel="AI買い物診断"
+            >
+              <Text style={styles.actionCardText}>AI買い物診断</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionCard}
+              accessibilityRole="button"
+              accessibilityLabel="廃棄入力"
+            >
+              <Text style={styles.actionCardText}>廃棄入力</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Bottom Navigation */}
+        <View style={styles.bottomNavigation}>
+          <TouchableOpacity style={styles.navItem} accessibilityRole="button">
+            <Ionicons name="home" size={24} color="#fafeff" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.navItem} accessibilityRole="button">
+            <View style={styles.aiButton}>
+              <Text style={styles.aiButtonText}>AI</Text>
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.navItem} accessibilityRole="button">
+            <Ionicons name="menu" size={24} color="#fafeff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Modal Overlay */}
+        <View style={styles.modalOverlay}>
+          {/* Survey Modal */}
+          <View style={styles.surveyModal}>
+            <ScrollView contentContainerStyle={styles.modalContent}>
+              {/* Progress Indicator */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressLine} />
+                {progressDots.map((dot, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.progressDot,
+                      dot.active ? styles.progressDotActive : styles.progressDotInactive,
+                      { left: 67 + (index * 75) },
+                    ]}
+                  />
+                ))}
+              </View>
+
+              {/* Question */}
+              <Text style={styles.questionText}>
+                Q1.ご自身の職業を教えてください。
+              </Text>
+
+              {/* Occupation Selection Grid */}
+              <View style={styles.occupationGrid}>
+                {occupations.map((occupation) => (
+                  <HexagonButton
+                    key={occupation.id}
+                    occupation={occupation}
+                    onPress={() => handleOccupationSelect(occupation.id)}
+                  />
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
       </View>
-    </View>
-  )
-}
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fafeff',
+  },
+  mainBackground: {
+    flex: 1,
+    width: screenWidth,
+    height: screenHeight,
+    backgroundColor: '#fafeff',
+    position: 'relative',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    position: 'absolute',
+    top: 24,
+    right: 29,
+    zIndex: 10,
+  },
+  notificationButton: {
+    width: 41,
+    height: 41,
+    backgroundColor: '#156486',
+    borderRadius: 20.5,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
   },
-  backButton: {
-    padding: 8,
+  dateBadge: {
+    position: 'absolute',
+    top: 103,
+    left: 29,
+    width: 198,
+    height: 48,
+    backgroundColor: '#156486',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  backButtonText: {
-    color: '#4299e1',
-    fontSize: 16,
-  },
-  progress: {
-    color: '#718096',
-    fontSize: 16,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 16,
-  },
-  question: {
-    fontSize: 20,
-    color: '#4a5568',
-    lineHeight: 28,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#718096',
-    marginBottom: 32,
-  },
-  optionsContainer: {
-    gap: 12,
-    paddingBottom: 20,
-  },
-  option: {
-    backgroundColor: 'white',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-  },
-  optionSelected: {
-    borderColor: '#4299e1',
-    backgroundColor: '#ebf8ff',
-  },
-  optionText: {
-    fontSize: 16,
-    color: '#4a5568',
+  dateText: {
+    fontFamily: 'System',
+    fontWeight: '600',
+    color: '#fafeff',
+    fontSize: 24,
     textAlign: 'center',
   },
-  optionTextSelected: {
-    color: '#2b6cb0',
-    fontWeight: '600',
+  contentArea: {
+    position: 'absolute',
+    top: 169,
+    left: 29,
+    right: 29,
   },
-  footer: {
-    paddingHorizontal: 32,
-    paddingBottom: 40,
-    paddingTop: 20,
+  mainCard: {
+    width: screenWidth - 58,
+    height: 216,
+    backgroundColor: '#d9d9d9',
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#156486',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 19,
   },
-  nextButton: {
-    backgroundColor: '#4299e1',
-    paddingVertical: 16,
-    borderRadius: 12,
+  calendarCard: {
+    width: screenWidth - 58,
+    height: 101,
+    backgroundColor: '#d9d9d9',
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#156486',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  cardText: {
+    fontFamily: 'System',
+    fontSize: 20,
+    color: '#fafeff',
+    textAlign: 'center',
+  },
+  actionCardsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionCard: {
+    width: 154,
+    height: 100,
+    backgroundColor: '#fafeff',
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#156486',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  nextButtonDisabled: {
-    backgroundColor: '#a0aec0',
-  },
-  nextButtonText: {
-    color: 'white',
-    fontSize: 18,
+  actionCardText: {
+    fontFamily: 'System',
     fontWeight: '600',
+    color: '#156486',
+    fontSize: 20,
+    textAlign: 'center',
   },
-})
+  bottomNavigation: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 79,
+    backgroundColor: '#156486',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  navItem: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aiButton: {
+    width: 43,
+    height: 27,
+    backgroundColor: '#fafeff',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aiButtonText: {
+    fontFamily: 'System',
+    fontSize: 20,
+    color: '#156486',
+    fontWeight: 'normal',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(16, 20, 32, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  surveyModal: {
+    width: screenWidth - 31,
+    height: 592,
+    backgroundColor: '#fafeff',
+    borderRadius: 15,
+    marginHorizontal: 15.5,
+  },
+  modalContent: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  progressContainer: {
+    width: 229,
+    height: 20,
+    marginTop: 51,
+    marginBottom: 40,
+    position: 'relative',
+  },
+  progressLine: {
+    position: 'absolute',
+    top: 5,
+    left: 0,
+    width: 229,
+    height: 4,
+    backgroundColor: '#b4c4c5',
+  },
+  progressDot: {
+    position: 'absolute',
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    top: 0,
+  },
+  progressDotActive: {
+    backgroundColor: '#156486',
+  },
+  progressDotInactive: {
+    backgroundColor: '#b4c4c5',
+  },
+  questionText: {
+    fontFamily: 'System',
+    fontSize: 15,
+    color: '#000000',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  occupationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 10,
+  },
+  hexagonContainer: {
+    margin: 8,
+    width: 107,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hexagon: {
+    width: 107,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 15,
+    borderWidth: 2,
+  },
+  hexagonSelected: {
+    backgroundColor: '#156486',
+    borderColor: '#156486',
+  },
+  hexagonDefault: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#156486',
+  },
+  hexagonText: {
+    fontFamily: 'System',
+    fontWeight: '600',
+    fontSize: 18,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  hexagonTextSelected: {
+    color: '#fafeff',
+  },
+  hexagonTextDefault: {
+    color: '#101420',
+  },
+});
+
+export default App;
