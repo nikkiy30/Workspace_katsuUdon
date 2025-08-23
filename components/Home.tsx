@@ -15,6 +15,7 @@ const actionCards = [
   { title: "廃棄入力", hasArrow: true },
 ];
 
+// ホーム画面
 export const Screen = () => {
   return (
     <ThemedView style={styles.container}>

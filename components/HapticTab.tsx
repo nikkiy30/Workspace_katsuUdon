@@ -2,6 +2,8 @@ import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
 
+
+// ボタンを押したときに軽い触覚フィードバックを追加するカスタムタブコンポーネント
 export function HapticTab(props: BottomTabBarButtonProps) {
   return (
     <PlatformPressable

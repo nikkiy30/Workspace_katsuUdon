@@ -11,6 +11,8 @@ import {
   View,
 } from 'react-native'
 
+
+// 認証画面
 export function AuthScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

@@ -7,6 +7,7 @@ export type ThemedTextProps = TextProps & {
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
 };
 
+// テーマに応じたテキストコンポーネント
 export function ThemedText({
   style,
   lightColor,

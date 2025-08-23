@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
+import { WasteRecord } from '@/types/database'
+import React, { useEffect, useState } from 'react'
 import {
-  View,
+  Alert,
+  FlatList,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  FlatList,
+  View,
 } from 'react-native'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
-import { WasteRecord } from '@/types/database'
 
+
+// 廃棄画面のコンポーネント
 export default function WasteScreen() {
   const { user } = useAuth()
   const [foodName, setFoodName] = useState('')

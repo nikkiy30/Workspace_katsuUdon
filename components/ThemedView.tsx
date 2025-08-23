@@ -6,6 +6,7 @@ export type ThemedViewProps = ViewProps & {
   lightColor?: string;
 };
 
+// テーマに応じたビューコンポーネント
 export function ThemedView({ style, lightColor, ...otherProps }: ThemedViewProps) {
   const backgroundColor = lightColor || Colors.light.background;
 
