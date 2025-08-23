@@ -18,7 +18,8 @@ export function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp, signInAnonymously } = useAuth()
-
+  const router = useRouter()
+  
   const handleAuth = async () => {
     if (!email || !password) {
       Alert.alert('エラー', 'メールアドレスとパスワードを入力してください')
@@ -27,24 +28,38 @@ export function AuthScreen() {
 
     setLoading(true)
     try {
-      const { error } = isSignUp
+      const res = isSignUp
         ? await signUp(email, password)
         : await signIn(email, password)
 
+      const error = (res as any)?.error
       if (error) {
-        Alert.alert('エラー', error.message)
-      } else if (isSignUp) {
-        Alert.alert('成功', 'アカウントが作成されました')
+        const msg = (error as { message?: string }).message ?? '不明なエラー'
+        Alert.alert('エラー', msg)
+        return
       }
-    } catch (error) {
-      Alert.alert('エラー', '予期しないエラーが発生しました')
+      if (isSignUp) {
+        Alert.alert('成功', 'アカウントが作成されました')
+        // 次はサインインさせる（awaitしてからルーティング）
+        const signInRes = await signIn(email, password)
+        const signInError = (signInRes as any)?.error
+        if (signInError) {
+          const msg = (signInError as { message?: string }).message ?? 'サインインに失敗しました'
+          Alert.alert('エラー', msg)
+          return
+        }
+
+        // 正しいパスでオンボーディングへ遷移（expo-router の app グループ名を使用）
+        router.push('/(onboarding)')
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        Alert.alert('エラー', err.message)
+      } else {
+        Alert.alert('エラー', '予期しないエラーが発生しました')
+      }
     } finally {
       setLoading(false)
-    }
-    if (isSignUp) {
-      useRouter().push('../onboarding/index')
-    } else {
-      useRouter().push('../tabs/home')
     }
   }
 
@@ -52,16 +67,20 @@ export function AuthScreen() {
     setLoading(true)
     try {
       const { error } = await signInAnonymously()
-      
+
       if (error) {
-        Alert.alert('エラー', error.message)
+        const msg = (error as { message?: string })?.message ?? '匿名サインインに失敗しました'
+        Alert.alert('エラー', msg)
+        return
       }
-    } catch (error) {
+
+      // 成功したらウェルカムへ遷移
+      router.push('/(onboarding)/welcome')
+    } catch (err) {
       Alert.alert('エラー', '予期しないエラーが発生しました')
     } finally {
       setLoading(false)
     }
-    useRouter().push('../welcome')
   }
 
   return (
