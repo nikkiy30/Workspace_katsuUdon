@@ -1,15 +1,17 @@
-import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { GoogleGenAI } from '@google/genai'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useEffect, useState } from 'react'
 import {
-    Alert,
+    ActivityIndicator,
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native'
+import Markdown from 'react-native-markdown-display'
 
 interface ChatMessage {
   id: string
@@ -18,26 +20,93 @@ interface ChatMessage {
   timestamp: Date
 }
 
+// Gemini APIの設定
+const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || ''
+const genAI = new GoogleGenAI({ apiKey })
+
 export default function AiChatScreen() {
   const router = useRouter()
+  const params = useLocalSearchParams()
   const [question, setQuestion] = useState('')
+  const [aiAnalysis, setAiAnalysis] = useState('')
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   
-  // モックの診断データ（実際は前の画面から受け取る）
+  // 前の画面から受け取った診断データ
   const diagnosisData = {
-    foodName: 'M 10個の卵',
-    expiryDate: '2025/9/3',
-    notes: '今日3個使う予定'
+    foodName: params.foodName as string || '',
+    amount: params.amount as string || '',
+    expiryDate: params.expiryDate as string || '',
+    notes: params.notes as string || ''
   }
   
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      text: '2025/8/22〜2025/9/3でM 10個の卵を使い切れる可能性は高いです。',
-      isUser: false,
-      timestamp: new Date(),
-    }
-  ])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
+
+  // 初回読み込み時にAI分析を実行
+  useEffect(() => {
+    if (diagnosisData.foodName && diagnosisData.amount) {
+      performAIAnalysis()
+    }
+  }, [])
+
+  // AI分析を実行する関数
+  const performAIAnalysis = async () => {
+    setIsAnalyzing(true)
+    try {
+      const prompt = `
+あなたはAIアシスタントです。
+日本語で簡潔に回答してください。
+専門用語を使う場合は分かりやすく説明してください。
+
+前提条件:
+{
+    "foodName": "${diagnosisData.foodName}",
+    "amount": "${diagnosisData.amount}",
+    "expiryDate": "${diagnosisData.expiryDate}",
+    "notes": "${diagnosisData.notes}",
+    "summary": {
+        "waste_count_last_month": 2,
+        "waste_frequency_category": "高頻度",
+        "average_waste_rate": 0.35,
+        "max_waste_rate": 0.8,
+        "days_since_last_discard": 12,
+        "is_improving_trend": false,
+        "most_common_purchase_unit": "個",
+        "user_profile_summary": {
+            "cooking_frequency": "週1-2回",
+            "family_size": "一人暮らし"
+        }
+    }
+}
+これを元に、以下の出力形式で回答してください
+- タイトル（判断を短く）
+- 詳細（判断の説明を長過ぎない程度に説明）
+- 根拠（「前提条件」の変数名は表示しないで説明してください）
+- アドバイス（仮に分析結果から使い切れる可能性が低くて廃棄してしまいそうだけどこのようにすれば、このような料理を作ってみませんか？とかその食材なら長持ちする保存方法とか結果を提示するだけじゃなくて改善に迎えるような役に立つアドバイスとかあった良いかも）
+`
+
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: prompt,
+      })
+
+      const analysisResult = response.text ?? 'エラーが発生しました'
+      setAiAnalysis(analysisResult)
+      
+      // 初期メッセージとしてAI分析結果を追加
+      setMessages([{
+        id: '1',
+        text: analysisResult,
+        isUser: false,
+        timestamp: new Date(),
+      }])
+    } catch (error) {
+      console.error('AI分析エラー:', error)
+      setAiAnalysis('エラーが発生しました: ' + error)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
 
   const handleSendQuestion = async () => {
     if (!question.trim()) return
@@ -54,20 +123,41 @@ export default function AiChatScreen() {
     setLoading(true)
 
     try {
-      // TODO: 実際のAI APIを呼び出す
-      // 現在はモックレスポンス
-      setTimeout(() => {
-        const aiResponse: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          text: `「${userMessage.text}」についてですね。食材の保存や購入に関するアドバイスをさせていただきます。\n\n例えば、卵の場合は冷蔵庫で約3週間保存可能ですが、賞味期限内に使い切ることをお勧めします。この機能は現在開発中です。`,
-          isUser: false,
-          timestamp: new Date(),
-        }
-        setMessages(prev => [...prev, aiResponse])
-        setLoading(false)
-      }, 1500)
+      // Gemini APIで追加質問に答える
+      const followUpPrompt = `
+前回の分析対象:
+- 食材: ${diagnosisData.foodName}
+- 内容量: ${diagnosisData.amount}
+- 賞味期限: ${diagnosisData.expiryDate}
+- 備考: ${diagnosisData.notes}
+
+ユーザーの追加質問: ${userMessage.text}
+
+上記の食材と関連して、ユーザーの質問に日本語で簡潔に答えてください。実用的なアドバイスを提供してください。
+`
+
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: followUpPrompt,
+      })
+
+      const aiResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: response.text ?? 'エラーが発生しました',
+        isUser: false,
+        timestamp: new Date(),
+      }
+      setMessages(prev => [...prev, aiResponse])
     } catch (error) {
-      Alert.alert('エラー', 'AI応答の取得に失敗しました')
+      console.error('AI応答エラー:', error)
+      const errorResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: 'エラーが発生しました。しばらくしてから再度お試しください。',
+        isUser: false,
+        timestamp: new Date(),
+      }
+      setMessages(prev => [...prev, errorResponse])
+    } finally {
       setLoading(false)
     }
   }
@@ -125,25 +215,30 @@ export default function AiChatScreen() {
         <View style={styles.diagnosisCard}>
           <Text style={styles.diagnosisLabel}>購入診断</Text>
           <View style={styles.diagnosisContent}>
-            <Text style={styles.foodInfo}>{diagnosisData.foodName}</Text>
-            <Text style={styles.expiryInfo}>賞味期限{diagnosisData.expiryDate}</Text>
-            <Text style={styles.noteInfo}>備考：{diagnosisData.notes}</Text>
+            <Text style={styles.foodInfo}>食材: {diagnosisData.foodName}</Text>
+            <Text style={styles.foodInfo}>内容量: {diagnosisData.amount}</Text>
+            <Text style={styles.expiryInfo}>賞味期限: {diagnosisData.expiryDate}</Text>
+            {diagnosisData.notes && <Text style={styles.noteInfo}>備考: {diagnosisData.notes}</Text>}
           </View>
         </View>
 
-        {/* AI推奨カード */}
+        {/* AI分析結果カード */}
         <View style={styles.aiRecommendationCard}>
           <View style={styles.aiHeader}>
             <View style={styles.aiIcon}>
               <Text style={styles.aiIconText}>AI</Text>
             </View>
           </View>
-          <Text style={styles.aiRecommendationText}>
-            {messages[0]?.text}
-          </Text>
-          <TouchableOpacity style={styles.reasonButton}>
-            <Text style={styles.reasonButtonText}>理由を見る</Text>
-          </TouchableOpacity>
+          {isAnalyzing ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>AI分析中...</Text>
+              <ActivityIndicator size="large" color="#2563eb" />
+            </View>
+          ) : (
+            <Markdown style={markdownStyles}>
+              {messages[0]?.text || 'AI分析結果がここに表示されます'}
+            </Markdown>
+          )}
         </View>
 
         {/* 追加のチャットメッセージ */}
@@ -369,3 +464,44 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 })
+
+// Markdownスタイル
+const markdownStyles = {
+  body: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#2d3748',
+  },
+  heading1: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1a202c',
+  },
+  heading2: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#1a202c',
+  },
+  paragraph: {
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  strong: {
+    fontWeight: '600' as const,
+    color: '#1a202c',
+  },
+  list_item: {
+    marginBottom: 4,
+  },
+  bullet_list: {
+    marginBottom: 12,
+  },
+  code_inline: {
+    backgroundColor: '#f0f0f0',
+    padding: 2,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+  },
+}
