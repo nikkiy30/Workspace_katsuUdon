@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router';
-import { ChartBar as BarChart3, Brain, Trash2, User } from 'lucide-react-native';
-import React from 'react';
+import { ChartBar as BarChart3, Brain, User } from 'lucide-react-native';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -29,13 +28,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <BarChart3 size={24} color={color} />,
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="wasteInput"
         options={{
           title: '廃棄記録',
           tabBarIcon: ({ color }) => <Trash2 size={24} color={color} />,
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="diagnosis"
         options={{

@@ -1,325 +1,209 @@
-import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase'
-import { WasteRecord } from '@/types/database'
-import React, { useEffect, useState } from 'react'
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ArrowLeft } from 'lucide-react-native';
+import { useState } from 'react';
 import {
   Alert,
-  FlatList,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+  TouchableOpacity
+} from 'react-native';
 
+interface InputField {
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string;
+}
 
-// 廃棄画面のコンポーネント
 export default function WasteScreen() {
-  const { user } = useAuth()
-  const [foodName, setFoodName] = useState('')
-  const [wasteAmount, setWasteAmount] = useState('')
-  const [wasteUnit, setWasteUnit] = useState<'pieces' | 'percentage'>('pieces')
-  const [purchaseAmount, setPurchaseAmount] = useState('')
-  const [purchaseUnit, setPurchaseUnit] = useState('')
-  const [remarks, setRemarks] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [wasteRecords, setWasteRecords] = useState<WasteRecord[]>([])
+  const [inputFields, setInputFields] = useState<InputField[]>([
+    {
+      id: 'food-item',
+      label: '廃棄する食品',
+      placeholder: '例)鶏むね肉',
+      value: '',
+    },
+    {
+      id: 'disposal-amount',
+      label: '廃棄量',
+      placeholder: '例)100g',
+      value: '',
+    },
+    {
+      id: 'purchase-amount',
+      label: '購入量、金額',
+      placeholder: '例)300g',
+      value: '',
+    },
+  ]);
 
-  useEffect(() => {
-    if (user) {
-      loadWasteRecords()
-    }
-  }, [user])
+  const [notes, setNotes] = useState('');
 
-  const loadWasteRecords = async () => {
-    if (!user) return
+  const updateInputField = (id: string, value: string) => {
+    setInputFields(prev =>
+      prev.map(field =>
+        field.id === id ? { ...field, value } : field
+      )
+    );
+  };
 
-    const { data, error } = await supabase
-      .from('waste_records')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10)
-
-    if (data) {
-      setWasteRecords(data)
-    }
-  }
-
-  const saveWasteRecord = async () => {
-    if (!user || !foodName || !wasteAmount || !purchaseAmount) {
-      Alert.alert('エラー', '必須項目を入力してください')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const { error } = await supabase
-        .from('waste_records')
-        .insert({
-          user_id: user.id,
-          food_name: foodName,
-          waste_amount: parseFloat(wasteAmount),
-          waste_unit: wasteUnit,
-          purchase_amount: parseFloat(purchaseAmount),
-          purchase_unit: purchaseUnit,
-          waste_date: new Date().toISOString().split('T')[0],
-        })
-
-      if (error) {
-        Alert.alert('エラー', '廃棄記録の保存に失敗しました')
-      } else {
-        Alert.alert('成功', '廃棄記録を保存しました')
-        // フォームをリセット
-        setFoodName('')
-        setWasteAmount('')
-        setPurchaseAmount('')
-        setPurchaseUnit('')
-        setRemarks('')
-        loadWasteRecords()
+  const handleSave = () => {
+    Alert.alert('保存完了', 'データが保存されました', [
+      {
+        text: 'OK',
+        onPress: () => router.back()
       }
-    } catch (error) {
-      Alert.alert('エラー', '予期しないエラーが発生しました')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const renderWasteRecord = ({ item }: { item: WasteRecord }) => (
-    <View style={styles.recordItem}>
-      <Text style={styles.recordTitle}>{item.food_name}</Text>
-      <Text style={styles.recordDetails}>
-        廃棄量: {item.waste_amount}{item.waste_unit === 'pieces' ? '個' : '%'} / 
-        購入量: {item.purchase_amount}{item.purchase_unit}
-      </Text>
-      <Text style={styles.recordDate}>
-        {new Date(item.waste_date).toLocaleDateString('ja-JP')}
-      </Text>
-    </View>
-  )
+    ]);
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>廃棄記録</Text>
-        <Text style={styles.subtitle}>食品の廃棄状況を記録しましょう</Text>
-      </View>
+    <ThemedView style={styles.container}>
+      <StatusBar style="dark" backgroundColor="#fafeff" />
+      
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <ThemedView style={styles.content}>
+            {/* Header */}
+            <ThemedView style={styles.header}>
+              <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <ArrowLeft size={24} color="#156486" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <ThemedText style={styles.saveButtonText}>保存する</ThemedText>
+              </TouchableOpacity>
+              {/* 
+              TODO: 右矢印を作りたい
+              <View style={styles.headerLines}>
+                <View style={styles.headerLine} />
+                <View style={styles.headerLine} />
+              </View> */}
+            </ThemedView>
 
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>廃棄する食品 *</Text>
-          <TextInput
-            style={styles.input}
-            value={foodName}
-            onChangeText={setFoodName}
-            placeholder="例: 鶏むね肉"
-          />
-        </View>
+            {/* Input Fields */}
+            {inputFields.map((field, index) => (
+              <ThemedView key={field.id} style={[styles.inputContainer, { marginTop: index === 0 ? 40 : 20 }]}>
+                <ThemedText style={styles.inputLabel}>{field.label}</ThemedText>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder={field.placeholder}
+                  placeholderTextColor="#10142066"
+                  value={field.value}
+                  onChangeText={(text) => updateInputField(field.id, text)}
+                />
+              </ThemedView>
+            ))}
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>廃棄量 *</Text>
-          <View style={styles.row}>
-            <TextInput
-              style={[styles.input, styles.inputSmall]}
-              value={wasteAmount}
-              onChangeText={setWasteAmount}
-              placeholder="数量"
-              keyboardType="numeric"
-            />
-            <TouchableOpacity
-              style={[styles.unitButton, wasteUnit === 'pieces' && styles.unitButtonActive]}
-              onPress={() => setWasteUnit('pieces')}
-            >
-              <Text style={[styles.unitText, wasteUnit === 'pieces' && styles.unitTextActive]}>個</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.unitButton, wasteUnit === 'percentage' && styles.unitButtonActive]}
-              onPress={() => setWasteUnit('percentage')}
-            >
-              <Text style={[styles.unitText, wasteUnit === 'percentage' && styles.unitTextActive]}>%</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>購入量・金額 *</Text>
-          <View style={styles.row}>
-            <TextInput
-              style={[styles.input, styles.inputSmall]}
-              value={purchaseAmount}
-              onChangeText={setPurchaseAmount}
-              placeholder="数量"
-              keyboardType="numeric"
-            />
-            <TextInput
-              style={[styles.input, styles.inputSmall]}
-              value={purchaseUnit}
-              onChangeText={setPurchaseUnit}
-              placeholder="単位 (g, 円など)"
-            />
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>備考</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={remarks}
-            onChangeText={setRemarks}
-            placeholder="廃棄理由など..."
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={saveWasteRecord}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? '保存中...' : '保存する'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.recordsSection}>
-        <Text style={styles.recordsTitle}>最近の廃棄記録</Text>
-        <FlatList
-          data={wasteRecords}
-          renderItem={renderWasteRecord}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-        />
-      </View>
-    </ScrollView>
-  )
+            {/* Notes Section */}
+            <ThemedView style={styles.notesContainer}>
+              <ThemedText style={styles.notesLabel}>備考</ThemedText>
+              <TextInput
+                style={styles.notesInput}
+                placeholder=""
+                placeholderTextColor="#10142066"
+                multiline
+                numberOfLines={8}
+                textAlignVertical="top"
+                value={notes}
+                onChangeText={setNotes}
+              />
+            </ThemedView>
+          </ThemedView>
+        </ScrollView>
+      </SafeAreaView>
+    </ThemedView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
-  header: {
-    padding: 24,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#4a5568',
-  },
-  form: {
-    backgroundColor: 'white',
-    margin: 16,
-    padding: 24,
-    borderRadius: 12,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3748',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    backgroundColor: '#f7fafc',
-  },
-  inputSmall: {
+  safeArea: {
     flex: 1,
   },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
+  scrollView: {
+    flex: 1,
   },
-  row: {
+  content: {
+    paddingHorizontal: 14,
+    paddingBottom: 20,
+  },
+  header: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 10,
+    backgroundColor: 'transparent',
   },
-  unitButton: {
-    paddingHorizontal: 16,
+  backButton: {
+    padding: 8,
+  },
+  saveButton: {
+    paddingHorizontal: 20,
     paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    backgroundColor: '#f7fafc',
   },
-  unitButtonActive: {
-    backgroundColor: '#4299e1',
-    borderColor: '#4299e1',
-  },
-  unitText: {
-    fontSize: 16,
-    color: '#4a5568',
-  },
-  unitTextActive: {
-    color: 'white',
-  },
-  button: {
-    backgroundColor: '#4299e1',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    backgroundColor: '#a0aec0',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
+  saveButtonText: {
     fontWeight: '600',
+    color: '#156486',
+    fontSize: 20,
   },
-  recordsSection: {
-    margin: 16,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 24,
+  headerLines: {
+    width: 19,
+    height: 58,
   },
-  recordsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 16,
+  headerLine: {
+    width: 19,
+    height: 31,
+    backgroundColor: '#156486',
+    marginBottom: 27,
   },
-  recordItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+  inputContainer: {
+    marginBottom: 20,
+    backgroundColor: 'transparent',
+  },
+  inputLabel: {
+    color: '#156486',
+    fontSize: 15,
     marginBottom: 8,
+    fontWeight: '400',
   },
-  recordTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3748',
-    marginBottom: 4,
+  textInput: {
+    width: '100%',
+    height: 56,
+    backgroundColor: '#1564861a',
+    borderRadius: 5,
+    borderWidth: 3,
+    borderColor: '#156486',
+    paddingHorizontal: 12,
+    fontSize: 15,
+    color: '#101420',
   },
-  recordDetails: {
-    fontSize: 14,
-    color: '#4a5568',
-    marginBottom: 4,
+  notesContainer: {
+    marginTop: 20,
+    backgroundColor: 'transparent',
   },
-  recordDate: {
-    fontSize: 12,
-    color: '#718096',
+  notesLabel: {
+    color: '#15648659',
+    fontSize: 15,
+    marginBottom: 8,
+    marginLeft: 12,
+    fontWeight: '400',
   },
-})
+  notesInput: {
+    width: '100%',
+    height: 194,
+    backgroundColor: '#fafeff',
+    borderRadius: 5,
+    borderWidth: 3,
+    borderColor: '#156486',
+    padding: 12,
+    fontSize: 15,
+    color: '#101420',
+  },
+});

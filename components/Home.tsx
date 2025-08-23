@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { router } from "expo-router";
 import { Bell, ChevronRight, Home as HomeIcon, MoreHorizontal } from "lucide-react-native";
-import React from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
@@ -11,8 +11,8 @@ const navigationItems = [
 ];
 
 const actionCards = [
-  { title: "AI買い物診断", hasArrow: false },
-  { title: "廃棄入力", hasArrow: true },
+  { title: "AI買い物診断", hasArrow: false, route: '/(tabs)/diagnosis' },
+  { title: "廃棄入力", hasArrow: true, route: '/wasteInput' },
 ];
 
 // ホーム画面
@@ -40,7 +40,12 @@ export const Screen = () => {
 
         <View style={styles.actionsRow}>
           {actionCards.map((card, i) => (
-            <TouchableOpacity key={i} style={styles.actionCard} activeOpacity={0.8}>
+            <TouchableOpacity 
+              key={i} 
+              style={styles.actionCard} 
+              activeOpacity={0.8}
+              onPress={() => router.push(card.route as any)}
+            >
               <ThemedText style={styles.actionTitle}>{card.title}</ThemedText>
               {card.hasArrow && <ChevronRight color="#156486" size={18} />}
             </TouchableOpacity>
