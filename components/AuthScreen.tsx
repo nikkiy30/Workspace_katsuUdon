@@ -1,5 +1,6 @@
 import { useAuth } from '@/hooks/useAuth'
-import React, { useState } from 'react'
+import { useRouter } from 'expo-router'
+import { useState } from 'react'
 import {
   Alert,
   KeyboardAvoidingView,
@@ -10,8 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-
-
 // 認証画面
 export function AuthScreen() {
   const [email, setEmail] = useState('')
@@ -57,6 +56,7 @@ export function AuthScreen() {
     } finally {
       setLoading(false)
     }
+    useRouter().push('/question1')
   }
 
   return (
