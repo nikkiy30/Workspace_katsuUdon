@@ -1,23 +1,24 @@
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { PurchaseDiagnosis } from '@/types/database'
+import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native'
 
-export default function DiagnosisMain() {
+export default function DiagnosisScreen() {
+  const router = useRouter()
   const { user } = useAuth()
   const [currentDiagnosis, setCurrentDiagnosis] = useState<PurchaseDiagnosis | null>(null)
-  const [aiQuestion, setAiQuestion] = useState('')
-  const [showInputForm, setShowInputForm] = useState(false)
+  const [showInputForm, setShowInputForm] = useState(true)
   const [foodName, setFoodName] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
   const [plannedAmount, setPlannedAmount] = useState('')
@@ -135,12 +136,9 @@ export default function DiagnosisMain() {
     }
   }
 
-  const handleAiQuestion = () => {
-    if (!aiQuestion.trim()) return
-    
-    // AI質問機能は後で実装
-    Alert.alert('AI質問', 'AI質問機能は開発中です')
-    setAiQuestion('')
+  const handleAiChatNavigation = () => {
+    // ChatView画面に遷移
+    router.push('/diagnosis/ai-chat' as any)
   }
 
   if (showInputForm) {
@@ -153,7 +151,7 @@ export default function DiagnosisMain() {
           >
             <Text style={styles.backButtonText}>← 戻る</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>購入診断入力</Text>
+          <Text style={styles.title}>AI購入診断</Text>
         </View>
 
         <ScrollView style={styles.content}>
@@ -219,7 +217,7 @@ export default function DiagnosisMain() {
           style={styles.backButton}
           onPress={() => setShowInputForm(true)}
         >
-          <Text style={styles.backButtonText}>← 入力画面へ</Text>
+          <Text style={styles.backButtonText}>← 再診断</Text>
         </TouchableOpacity>
       </View>
 
@@ -273,21 +271,12 @@ export default function DiagnosisMain() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View style={styles.aiQuestionContainer}>
-          <TextInput
-            style={styles.aiQuestionInput}
-            value={aiQuestion}
-            onChangeText={setAiQuestion}
-            placeholder="AIに質問"
-            multiline
-          />
-          <TouchableOpacity 
-            style={styles.sendButton}
-            onPress={handleAiQuestion}
-          >
-            <Text style={styles.sendButtonText}>送信</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+          style={styles.aiChatButton}
+          onPress={handleAiChatNavigation}
+        >
+          <Text style={styles.aiChatButtonText}>AIに質問</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   )
@@ -421,32 +410,20 @@ const styles = StyleSheet.create({
     borderTopColor: '#e2e8f0',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingBottom: 100, // タブバーと重ならないように余白を追加
   },
-  aiQuestionContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 12,
-  },
-  aiQuestionInput: {
-    flex: 1,
+  aiChatButton: {
+    backgroundColor: '#f9fafb',
     borderWidth: 1,
     borderColor: '#d1d5db',
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    borderRadius: 25,
+    paddingHorizontal: 20,
     paddingVertical: 12,
+    alignItems: 'center',
+  },
+  aiChatButtonText: {
+    color: '#6b7280',
     fontSize: 16,
-    maxHeight: 80,
-  },
-  sendButton: {
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  sendButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
   },
   form: {
     backgroundColor: 'white',
