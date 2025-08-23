@@ -1,5 +1,6 @@
 import { useAuth } from '@/hooks/useAuth'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import * as Localization from 'expo-localization'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import {
@@ -24,6 +25,9 @@ export default function DiagnosisScreen() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // デバイスの言語設定を取得（日本語を優先）
+  const deviceLocale = Localization.getLocales()[0]?.languageTag || 'ja-JP'
+
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || expiryDate
     setShowDatePicker(Platform.OS === 'ios')
@@ -35,7 +39,7 @@ export default function DiagnosisScreen() {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric'
-    }).replace(/\//g, '/')
+    })
   }
 
   const handleSubmit = async () => {
@@ -108,13 +112,19 @@ export default function DiagnosisScreen() {
               <Text style={styles.dateText}>
                 {formatDate(expiryDate)}
               </Text>
+              <Text style={styles.dateIcon}>📅</Text>
             </TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
                 value={expiryDate}
                 mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
                 onChange={handleDateChange}
+                accentColor="#2563eb"
+                themeVariant="light"
+                style={Platform.OS === 'ios' ? styles.datePickerIOS : {}}
+                textColor="#333333"
+                locale={deviceLocale.startsWith('ja') ? 'ja' : 'ja-JP'}
               />
             )}
           </View>
@@ -196,10 +206,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     backgroundColor: '#f8fafc',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   dateText: {
     fontSize: 16,
     color: '#333333',
+    fontWeight: '500',
+  },
+  dateIcon: {
+    fontSize: 18,
+    opacity: 0.7,
   },
   notesInput: {
     borderWidth: 2,
@@ -212,5 +230,10 @@ const styles = StyleSheet.create({
     color: '#333333',
     height: 120,
     textAlignVertical: 'top',
+  },
+  datePickerIOS: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    marginTop: 8,
   },
 })
