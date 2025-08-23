@@ -21,10 +21,18 @@ interface ChatMessage {
 export default function AiChatScreen() {
   const router = useRouter()
   const [question, setQuestion] = useState('')
+  
+  // モックの診断データ（実際は前の画面から受け取る）
+  const diagnosisData = {
+    foodName: 'M 10個の卵',
+    expiryDate: '2025/9/3',
+    notes: '今日3個使う予定'
+  }
+  
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      text: 'こんにちは！食材の購入や保存について何でもお聞きください。',
+      text: '2025/8/22〜2025/9/3でM 10個の卵を使い切れる可能性は高いです。',
       isUser: false,
       timestamp: new Date(),
     }
@@ -105,16 +113,41 @@ export default function AiChatScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Text style={styles.backButtonText}>← 診断画面に戻る</Text>
+          <Text style={styles.backButtonText}>← 入力画面へ</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>AI質問</Text>
       </View>
 
       <ScrollView 
-        style={styles.messagesContainer}
+        style={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {messages.map(renderMessage)}
+        {/* 診断結果カード */}
+        <View style={styles.diagnosisCard}>
+          <Text style={styles.diagnosisLabel}>購入診断</Text>
+          <View style={styles.diagnosisContent}>
+            <Text style={styles.foodInfo}>{diagnosisData.foodName}</Text>
+            <Text style={styles.expiryInfo}>賞味期限{diagnosisData.expiryDate}</Text>
+            <Text style={styles.noteInfo}>備考：{diagnosisData.notes}</Text>
+          </View>
+        </View>
+
+        {/* AI推奨カード */}
+        <View style={styles.aiRecommendationCard}>
+          <View style={styles.aiHeader}>
+            <View style={styles.aiIcon}>
+              <Text style={styles.aiIconText}>AI</Text>
+            </View>
+          </View>
+          <Text style={styles.aiRecommendationText}>
+            {messages[0]?.text}
+          </Text>
+          <TouchableOpacity style={styles.reasonButton}>
+            <Text style={styles.reasonButtonText}>理由を見る</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 追加のチャットメッセージ */}
+        {messages.slice(1).map(renderMessage)}
         {loading && (
           <View style={styles.loadingContainer}>
             <View style={styles.aiIcon}>
@@ -128,21 +161,23 @@ export default function AiChatScreen() {
       </ScrollView>
 
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.questionInput}
-          value={question}
-          onChangeText={setQuestion}
-          placeholder="AIに質問してください"
-          multiline
-          maxLength={500}
-        />
-        <TouchableOpacity
-          style={[styles.sendButton, !question.trim() && styles.sendButtonDisabled]}
-          onPress={handleSendQuestion}
-          disabled={!question.trim() || loading}
-        >
-          <Text style={styles.sendButtonText}>送信</Text>
-        </TouchableOpacity>
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.questionInput}
+            value={question}
+            onChangeText={setQuestion}
+            placeholder="AIに質問"
+            multiline
+            maxLength={500}
+          />
+          <TouchableOpacity
+            style={[styles.sendButton, !question.trim() && styles.sendButtonDisabled]}
+            onPress={handleSendQuestion}
+            disabled={!question.trim() || loading}
+          >
+            <Text style={styles.sendButtonText}>送信</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   )
@@ -154,13 +189,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f2f5',
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   backButton: {
     padding: 8,
@@ -169,16 +202,78 @@ const styles = StyleSheet.create({
     color: '#2563eb',
     fontSize: 16,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2d3748',
-    marginLeft: 16,
-  },
-  messagesContainer: {
+  content: {
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
+  },
+  diagnosisCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#2563eb',
+  },
+  diagnosisLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2d3748',
+    marginBottom: 12,
+  },
+  diagnosisContent: {
+    gap: 4,
+  },
+  foodInfo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2d3748',
+  },
+  expiryInfo: {
+    fontSize: 14,
+    color: '#4a5568',
+  },
+  noteInfo: {
+    fontSize: 14,
+    color: '#4a5568',
+  },
+  aiRecommendationCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  aiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  aiIcon: {
+    backgroundColor: '#2563eb',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aiIconText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  aiRecommendationText: {
+    fontSize: 14,
+    color: '#2d3748',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  reasonButton: {
+    alignSelf: 'flex-start',
+  },
+  reasonButtonText: {
+    color: '#6b7280',
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
   messageContainer: {
     flexDirection: 'row',
@@ -190,21 +285,6 @@ const styles = StyleSheet.create({
   },
   aiMessage: {
     justifyContent: 'flex-start',
-  },
-  aiIcon: {
-    backgroundColor: '#2563eb',
-    borderRadius: 16,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-    marginTop: 4,
-  },
-  aiIconText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
   messageBubble: {
     maxWidth: '80%',
@@ -254,6 +334,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#e2e8f0',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingBottom: 100, // タブバーと重ならないように
+  },
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 12,
@@ -262,18 +345,20 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: '#d1d5db',
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    borderRadius: 25,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 16,
-    maxHeight: 100,
     backgroundColor: '#f9fafb',
+    maxHeight: 100,
   },
   sendButton: {
     backgroundColor: '#2563eb',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 20,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sendButtonDisabled: {
     backgroundColor: '#9ca3af',
