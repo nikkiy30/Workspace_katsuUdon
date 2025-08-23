@@ -1,12 +1,11 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native'
 
 const DIETARY_OPTIONS = [
@@ -38,10 +37,6 @@ export default function Question2Screen() {
   }
 
   const handleNext = () => {
-    if (selectedRestrictions.length === 0) {
-      Alert.alert('選択してください', '少なくとも1つのオプションを選択してください')
-      return
-    }
 
     // 選択した内容は後でプロフィール機能実装時に保存予定
     console.log('Selected dietary restrictions:', selectedRestrictions)

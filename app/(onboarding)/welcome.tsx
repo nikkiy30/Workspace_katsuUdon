@@ -1,15 +1,15 @@
 import { useRouter } from 'expo-router'
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native'
 
 export default function WelcomeScreen() {
   const router = useRouter()
 
-  const handleNext = () => {
+  const goToQ1 = () => {
     router.push('/question1')
   }
 
@@ -31,7 +31,7 @@ export default function WelcomeScreen() {
           提供するために使用されます。
         </Text>
         
-        <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <TouchableOpacity style={styles.button} onPress={goToQ1}>
           <Text style={styles.buttonText}>はじめる</Text>
         </TouchableOpacity>
       </View>

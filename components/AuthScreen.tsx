@@ -27,7 +27,7 @@ export function AuthScreen() {
 
     setLoading(true)
     try {
-      const { error } = isSignUp 
+      const { error } = isSignUp
         ? await signUp(email, password)
         : await signIn(email, password)
 
@@ -41,8 +41,11 @@ export function AuthScreen() {
     } finally {
       setLoading(false)
     }
-    // TODO. サインイン時のみにオンボーディング画面へ遷移させる
-    useRouter().push('/question1')
+    if (isSignUp) {
+      useRouter().push('../onboarding/index')
+    } else {
+      useRouter().push('../tabs/home')
+    }
   }
 
   const handleAnonymousAuth = async () => {
@@ -58,7 +61,7 @@ export function AuthScreen() {
     } finally {
       setLoading(false)
     }
-    useRouter().push('/question1')
+    useRouter().push('../welcome')
   }
 
   return (

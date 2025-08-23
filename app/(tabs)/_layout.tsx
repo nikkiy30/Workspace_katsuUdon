@@ -28,13 +28,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <BarChart3 size={24} color={color} />,
         }}
       />
-      {/* <Tabs.Screen
-        name="wasteInput"
-        options={{
-          title: '廃棄記録',
-          tabBarIcon: ({ color }) => <Trash2 size={24} color={color} />,
-        }}
-      /> */}
       <Tabs.Screen
         name="diagnosis"
         options={{

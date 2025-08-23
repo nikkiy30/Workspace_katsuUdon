@@ -46,7 +46,7 @@ const App: React.FC = () => {
 
   const handleOccupationSelect = (occupationId: string) => {
     setSelectedOccupation(occupationId);
-    useRouter().push('/(onboarding)/question2');
+    useRouter().push('/question2');
   };
 
   const HexagonButton: React.FC<{
