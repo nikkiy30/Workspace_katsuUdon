@@ -2,9 +2,10 @@ import { useAuth } from '@/hooks/useAuth'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as Localization from 'expo-localization'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Alert,
+  Keyboard,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -24,9 +25,25 @@ export default function DiagnosisScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
 
   // デバイスの言語設定を取得（日本語を優先）
   const deviceLocale = Localization.getLocales()[0]?.languageTag || 'ja-JP'
+
+  // キーボード表示/非表示の検知
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true)
+    })
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false)
+    })
+
+    return () => {
+      showSubscription?.remove()
+      hideSubscription?.remove()
+    }
+  }, [])
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || expiryDate
@@ -69,7 +86,7 @@ export default function DiagnosisScreen() {
       setLoading(false)
     }
   }
-
+  //! UI ここから
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -80,7 +97,7 @@ export default function DiagnosisScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.form}>
+        <View style={[styles.form, keyboardVisible && styles.formWithKeyboard]}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>商品</Text>
             <TextInput
@@ -107,7 +124,7 @@ export default function DiagnosisScreen() {
             <Text style={styles.label}>賞味期限/消費期限</Text>
             <TouchableOpacity
               style={styles.dateInput}
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => setShowDatePicker((prev) => !prev)}
             >
               <Text style={styles.dateText}>
                 {formatDate(expiryDate)}
@@ -141,11 +158,12 @@ export default function DiagnosisScreen() {
               textAlignVertical="top"
             />
           </View>
-        </View>
+                </View>
       </ScrollView>
     </SafeAreaView>
   )
 }
+  //! UI ここまで
 
 const styles = StyleSheet.create({
   container: {
@@ -178,7 +196,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   form: {
-    flex: 1,
+    paddingBottom: 100,
+  },
+  formWithKeyboard: {
+    paddingBottom: 350,
   },
   inputGroup: {
     marginBottom: 24,
