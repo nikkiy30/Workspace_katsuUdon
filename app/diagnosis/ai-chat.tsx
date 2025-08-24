@@ -2,14 +2,15 @@ import { GoogleGenAI } from '@google/genai'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
-    ActivityIndicator,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Keyboard,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native'
 import Markdown from 'react-native-markdown-display'
 
@@ -20,9 +21,9 @@ interface ChatMessage {
   timestamp: Date
 }
 
-// Gemini APIの設定
+//! Gemini APIの設定
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || ''
-const genAI = new GoogleGenAI({ apiKey })
+const genAI = new GoogleGenAI({ apiKey: apiKey })
 
 export default function AiChatScreen() {
   const router = useRouter()
@@ -30,6 +31,21 @@ export default function AiChatScreen() {
   const [question, setQuestion] = useState('')
   const [aiAnalysis, setAiAnalysis] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true)
+    })
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false)
+    })
+
+    return () => {
+      showSubscription?.remove()
+      hideSubscription?.remove()
+    }
+  }, [])
   
   // 前の画面から受け取った診断データ
   const diagnosisData = {
@@ -118,6 +134,7 @@ export default function AiChatScreen() {
       isUser: true,
       timestamp: new Date(),
     }
+    //前のメッセージに加えてユーザーメッセージを追加
     setMessages(prev => [...prev, userMessage])
     setQuestion('')
     setLoading(true)
@@ -189,7 +206,7 @@ export default function AiChatScreen() {
         ]}>
           {message.text}
         </Text>
-        <Text style={styles.timestamp}>
+        <Text style={message.isUser ? styles.usertimestamp : styles.aitimestamp}>
           {message.timestamp.toLocaleTimeString('ja-JP', {
             hour: '2-digit',
             minute: '2-digit'
@@ -198,7 +215,7 @@ export default function AiChatScreen() {
       </View>
     </View>
   )
-
+  //! UI ここから
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -255,7 +272,7 @@ export default function AiChatScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, keyboardVisible && styles.inputingContainer]}>
         <View style={styles.inputRow}>
           <TextInput
             style={styles.questionInput}
@@ -276,6 +293,7 @@ export default function AiChatScreen() {
       </View>
     </SafeAreaView>
   )
+  //! UI ここまで
 }
 
 const styles = StyleSheet.create({
@@ -408,7 +426,12 @@ const styles = StyleSheet.create({
   aiText: {
     color: '#2d3748',
   },
-  timestamp: {
+  usertimestamp: {
+    fontSize: 10,
+    color: '#e2e8f0',
+    alignSelf: 'flex-start',
+  },
+  aitimestamp: {
     fontSize: 10,
     color: '#6b7280',
     alignSelf: 'flex-end',
@@ -430,6 +453,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingBottom: 100, // タブバーと重ならないように
+  },
+  inputingContainer: {
+    paddingBottom: 350,
   },
   inputRow: {
     flexDirection: 'row',
