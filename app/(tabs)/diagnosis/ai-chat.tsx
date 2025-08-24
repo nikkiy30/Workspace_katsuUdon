@@ -232,7 +232,7 @@ export default function AiChatScreen() {
       <ScrollView 
         style={styles.content}
         contentContainerStyle={{
-          paddingBottom: 120, // 固定のpadding bottom（タブバー + 入力欄の高さ）
+          paddingBottom: keyboardVisible ? 50 : 120, // キーボードの開閉によって下の空白を調整
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -280,7 +280,10 @@ export default function AiChatScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.inputContainer}>
+      <View style={[
+        styles.inputContainer,
+        keyboardVisible && styles.inputContainerWithKeyboard
+      ]}>
         <View style={styles.inputRow}>
           <TextInput
             style={styles.questionInput}
@@ -460,7 +463,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#e2e8f0',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingBottom: 100, // タブバー分のスペース
+    paddingBottom: 100, 
+  },
+  inputContainerWithKeyboard: {
+    paddingBottom: 350, // キーボード開閉時に重ならないようにひょいっと上がるやつの余白
   },
   inputRow: {
     flexDirection: 'row',
