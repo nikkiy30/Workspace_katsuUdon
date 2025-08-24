@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
   Keyboard,
   SafeAreaView,
   ScrollView,
@@ -207,7 +208,27 @@ ${allMessages.map(msg =>
   }
 
   const handleBack = () => {
-    router.back()
+    // 会話履歴がある場合のみAlertを表示
+    if (messages.length > 1) {
+      Alert.alert(
+        '確認',
+        '戻ると現在の会話履歴が失われますが、よろしいですか？',
+        [
+          {
+            text: 'キャンセル',
+            style: 'cancel'
+          },
+          {
+            text: '戻る',
+            style: 'destructive',
+            onPress: () => router.back()
+          }
+        ]
+      )
+    } else {
+      // 会話履歴がない場合は直接戻る
+      router.back()
+    }
   }
 
   const renderMessage = (message: ChatMessage) => (
