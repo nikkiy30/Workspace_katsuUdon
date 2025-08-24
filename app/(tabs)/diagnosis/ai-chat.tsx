@@ -205,12 +205,20 @@ export default function AiChatScreen() {
         styles.messageBubble,
         message.isUser ? styles.userBubble : styles.aiBubble
       ]}>
-        <Text style={[
-          styles.messageText,
-          message.isUser ? styles.userText : styles.aiText
-        ]}>
-          {message.text}
-        </Text>
+        {message.isUser ? (
+          <Text style={[
+            styles.messageText,
+            styles.userText
+          ]}>
+            {message.text}
+          </Text>
+        ) : (
+          <Text style={[styles.messageText, styles.aiText]}>
+            <Markdown style={markdownStyles}>
+              {message.text}
+            </Markdown>
+          </Text>
+        )}
         <Text style={message.isUser ? styles.usertimestamp : styles.aitimestamp}>
           {message.timestamp.toLocaleTimeString('ja-JP', {
             hour: '2-digit',
