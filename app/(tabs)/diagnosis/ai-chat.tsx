@@ -62,8 +62,9 @@ export default function AiChatScreen() {
   
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
+  const [allMessages, setAllMessages] = useState<ChatMessage[]>([])
 
-  // 初回読み込み時にAI分析を実行
+  // 初回読み込み時にAI分析を実行(.onappear)
   useEffect(() => {
     if (diagnosisData.foodName && diagnosisData.amount) {
       performAIAnalysis()
@@ -115,15 +116,26 @@ export default function AiChatScreen() {
       setAiAnalysis(analysisResult)
       
       // 初期メッセージとしてAI分析結果を追加
-      setMessages([{
+      const initialMessage: ChatMessage = {
         id: '1',
         text: analysisResult,
         isUser: false,
         timestamp: new Date(),
-      }])
+      }
+      
+      // 両方の配列に追加
+      setMessages([initialMessage])
+      setAllMessages([initialMessage])
     } catch (error) {
       console.error('AI分析エラー:', error)
-      setAiAnalysis('エラーが発生しました: ' + error)
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString(),
+        text: 'AI分析に失敗しました。しばらくしてから再度お試しください。',
+        isUser: false,
+        timestamp: new Date(),
+      }
+      setMessages([errorMessage])
+      setAllMessages([errorMessage])
     } finally {
       setIsAnalyzing(false)
     }
@@ -141,6 +153,7 @@ export default function AiChatScreen() {
     }
     //前のメッセージに加えてユーザーメッセージを追加
     setMessages(prev => [...prev, userMessage])
+    setAllMessages(prev => [...prev, userMessage])
     setQuestion('')
     setLoading(true)
 
@@ -153,9 +166,16 @@ export default function AiChatScreen() {
 - 賞味期限: ${diagnosisData.expiryDate}
 - 備考: ${diagnosisData.notes}
 
+会話履歴（文脈理解のため）:
+${allMessages.map(msg => 
+  `${msg.isUser ? 'ユーザー' : 'AI'}: ${msg.text}`
+).join('\n')}
+
 ユーザーの追加質問: ${userMessage.text}
 
-上記の食材と関連して、ユーザーの質問に日本語で簡潔に答えてください。実用的なアドバイスを提供してください。
+上記の食材と会話履歴の文脈を踏まえて、ユーザーの質問に日本語で簡潔に答えてください。
+前の会話の内容を理解した上で、一貫性のある回答を提供してください。
+実用的なアドバイスを提供してください。
 `
 
       const response = await genAI.models.generateContent({
@@ -170,6 +190,7 @@ export default function AiChatScreen() {
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, aiResponse])
+      setAllMessages(prev => [...prev, aiResponse])
     } catch (error) {
       console.error('AI応答エラー:', error)
       const errorResponse: ChatMessage = {
@@ -179,6 +200,7 @@ export default function AiChatScreen() {
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, errorResponse])
+      setAllMessages(prev => [...prev, errorResponse])
     } finally {
       setLoading(false)
     }
