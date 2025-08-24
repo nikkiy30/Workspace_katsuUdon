@@ -77,14 +77,14 @@ export default function DiagnosisScreen() {
 
       // ai-chat.tsxに診断データを渡して遷移
       router.push({
-        pathname: '/diagnosis/ai-chat',
+        pathname: '/(tabs)/diagnosis/ai-chat',
         params: {
           foodName,
           amount,
           expiryDate: diagnosisData.expiryDate,
           notes: notes || ''
         }
-      } as any)
+      })
       
       // TODO: 実際のAPIを呼び出してSupabaseに保存
       

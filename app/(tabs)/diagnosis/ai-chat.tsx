@@ -13,6 +13,7 @@ import {
   View
 } from 'react-native'
 import Markdown from 'react-native-markdown-display'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface ChatMessage {
   id: string
@@ -28,17 +29,21 @@ const genAI = new GoogleGenAI({ apiKey: apiKey })
 export default function AiChatScreen() {
   const router = useRouter()
   const params = useLocalSearchParams()
+  const insets = useSafeAreaInsets()
   const [question, setQuestion] = useState('')
   const [aiAnalysis, setAiAnalysis] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', (e) => {
       setKeyboardVisible(true)
+      setKeyboardHeight(e.endCoordinates.height)
     })
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
       setKeyboardVisible(false)
+      setKeyboardHeight(0)
     })
 
     return () => {
@@ -226,6 +231,9 @@ export default function AiChatScreen() {
 
       <ScrollView 
         style={styles.content}
+        contentContainerStyle={{
+          paddingBottom: 120, // 固定のpadding bottom（タブバー + 入力欄の高さ）
+        }}
         showsVerticalScrollIndicator={false}
       >
         {/* 診断結果カード */}
@@ -272,7 +280,7 @@ export default function AiChatScreen() {
         )}
       </ScrollView>
 
-      <View style={[styles.inputContainer, keyboardVisible && styles.inputingContainer]}>
+      <View style={styles.inputContainer}>
         <View style={styles.inputRow}>
           <TextInput
             style={styles.questionInput}
@@ -452,10 +460,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e2e8f0',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingBottom: 100, // タブバーと重ならないように
-  },
-  inputingContainer: {
-    paddingBottom: 350,
+    paddingBottom: 100, // タブバー分のスペース
   },
   inputRow: {
     flexDirection: 'row',
