@@ -34,9 +34,13 @@ export const Screen = () => {
           <ThemedText>廃棄量、節約量の成果</ThemedText>
         </View>
 
-        <View style={styles.cardMedium}>
+        <TouchableOpacity
+          style={styles.cardMedium}
+          activeOpacity={0.8}
+          onPress={() => router.push('/calendar' as any)}
+        >
           <ThemedText>カレンダー</ThemedText>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.actionsRow}>
           {actionCards.map((card, i) => (
@@ -112,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 3,
     borderColor: "#156486",
-    backgroundColor: "#d9d9d9",
+    backgroundColor: "#fafeff",
     alignItems: "center",
     justifyContent: "center",
   },
