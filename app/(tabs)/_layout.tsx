@@ -31,7 +31,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="diagnosis"
         options={{
-          title: 'AI診断',
+          title: 'AI相談',
           tabBarIcon: ({ color }) => <BotMessageSquare size={24} color={color} />,
         }}
       />
