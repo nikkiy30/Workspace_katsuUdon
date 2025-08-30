@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { ChartBar as BarChart3, Brain, User } from 'lucide-react-native';
+import { BotMessageSquare, CalendarCheck2, House, UserRoundPen } from 'lucide-react-native';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -25,21 +25,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'ホーム',
-          tabBarIcon: ({ color }) => <BarChart3 size={24} color={color} />,
+          tabBarIcon: ({ color }) => <House size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="diagnosis"
         options={{
           title: 'AI診断',
-          tabBarIcon: ({ color }) => <Brain size={24} color={color} />,
+          tabBarIcon: ({ color }) => <BotMessageSquare size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: '記録',
+          tabBarIcon: ({ color }) => <CalendarCheck2 size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'プロフィール',
-          tabBarIcon: ({ color }) => <User size={24} color={color} />,
+          tabBarIcon: ({ color }) => <UserRoundPen size={24} color={color} />,
         }}
       />
     </Tabs>

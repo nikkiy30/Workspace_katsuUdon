@@ -34,13 +34,14 @@ export const Screen = () => {
           <ThemedText>廃棄量、節約量の成果</ThemedText>
         </View>
 
-        <TouchableOpacity
+{/* //! カレンダー画面はTabbarに移したのでホーム画面からは削除 */}
+        {/* <TouchableOpacity
           style={styles.cardMedium}
           activeOpacity={0.8}
           onPress={() => router.push('/calendar' as any)}
         >
           <ThemedText>カレンダー</ThemedText>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View style={styles.actionsRow}>
           {actionCards.map((card, i) => (
