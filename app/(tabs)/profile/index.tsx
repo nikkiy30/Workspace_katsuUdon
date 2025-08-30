@@ -9,17 +9,9 @@ export default function ProfileScreen() {
       <View style={styles.content}>
         {/* ヘッダー */}
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View>
-              <Text style={styles.title}>プロフィール</Text>
-              <Text style={styles.subtitle}>あなたの生活スタイル</Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.editButton} 
-              onPress={() => router.push('/(tabs)/profile/edit')}
-            >
-              <Edit3 size={20} color="#156486" />
-            </TouchableOpacity>
+          <View>
+            <Text style={styles.title}>プロフィール</Text>
+            <Text style={styles.subtitle}>あなたの生活スタイル</Text>
           </View>
         </View>
 
@@ -48,6 +40,17 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {/* 編集ボタン */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => router.push('/(tabs)/profile/edit')}
+          >
+            <Edit3 size={20} color="#ffffff" />
+            <Text style={styles.editButtonText}>プロフィールを編集</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   )
@@ -69,11 +72,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
   },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -84,11 +82,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#4a5568',
     lineHeight: 20,
-  },
-  editButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#f0f9ff',
   },
   profileContainer: {
     flex: 1,
@@ -126,6 +119,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#2d3748',
+    marginLeft: 8,
+  },
+  buttonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 16,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#156486',
+    paddingVertical: 14,
+    borderRadius: 12,
+    shadowColor: '#156486',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 6,
+  },
+  editButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
     marginLeft: 8,
   },
 })
