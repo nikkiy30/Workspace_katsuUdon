@@ -53,12 +53,8 @@ export default function WasteScreen() {
   };
 
   const handleSave = () => {
-    Alert.alert('保存完了', 'データが保存されました', [
-      {
-        text: 'OK',
-        onPress: () => router.back()
-      }
-    ]);
+    // 保存処理の実装が入る想定。とりあえず画面遷移のみ実装。
+    router.push('/feedback');
   };
 
   return (
