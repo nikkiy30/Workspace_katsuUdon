@@ -12,8 +12,16 @@ const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenAI({ apiKey: apiKey });
 
 export default function FeedbackScreen() {
+
+
   // サンプルデータ
   const monthlyTotal = 687; // グラム
+  
+  // 食材種類別廃棄量データ
+  const meatWaste = 500; // 肉類廃棄量（グラム）
+  const vegetableWaste = 200; // 野菜廃棄量（グラム）
+  const dairyWaste = 150; // 乳製品廃棄量（グラム）
+  const otherWaste = 87; // その他廃棄量（グラム）
   
   // AI改善提案の状態
   const [aiSuggestion, setAiSuggestion] = useState<string>('');
@@ -35,7 +43,7 @@ export default function FeedbackScreen() {
     labels: ['肉類', '野菜', '乳製品', 'その他'],
     datasets: [
       {
-        data: [500, 200, 150, 87],
+        data: [meatWaste, vegetableWaste, dairyWaste, otherWaste],
         color: (opacity = 1) => `rgba(21, 100, 134, ${opacity})`,
       }
     ]
@@ -86,10 +94,10 @@ export default function FeedbackScreen() {
 - 先月比: -12% ↓
 - 週次データ: 第1週(180g), 第2週(150g), 第3週(200g), 第4週(157g)
 - 食材種類別廃棄量:
-  - 肉類: 250g
-  - 野菜: 200g
-  - 乳製品: 150g
-  - その他: 87g
+  - 肉類: ${meatWaste}g
+  - 野菜: ${vegetableWaste}g
+  - 乳製品: ${dairyWaste}g
+  - その他: ${otherWaste}g
 
 改善提案の要件:
 1. データに基づいた具体的な分析
@@ -316,6 +324,7 @@ const styles = StyleSheet.create({
   chart: {
     borderRadius: 12,
     marginVertical: 8,
+    marginLeft: -8,
   },
   categoryList: {
     marginTop: 20,
