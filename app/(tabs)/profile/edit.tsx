@@ -1,5 +1,5 @@
 import { router } from 'expo-router'
-import { ChevronDown } from 'lucide-react-native'
+import { ChevronDown, CookingPot, ShoppingCart, Users } from 'lucide-react-native'
 import { useState } from 'react'
 import { ActionSheetIOS, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -37,17 +37,18 @@ export default function ProfileEditScreen() {
     { label: '週4回', value: 4 },
     { label: '週5回', value: 5 },
     { label: '週6回', value: 6 },
-    { label: '週7回', value: 7 },
-    { label: '毎日2回以上', value: 14 },
+    { label: '毎日', value: 7 },
   ]
 
   const shoppingOptions = [
-    { label: '毎日', value: 'daily' },
-    { label: '週2-3回', value: 'several_times_week' },
-    { label: '週1回', value: 'weekly' },
-    { label: '2週間に1回', value: 'biweekly' },
-    { label: '月1回', value: 'monthly' },
-    { label: '特に決めていない', value: 'irregular' },
+    { label: '週1回', value: 1 },
+    { label: '週2回', value: 2 },
+    { label: '週3回', value: 3 },
+    { label: '週4回', value: 4 },
+    { label: '週5回', value: 5 },
+    { label: '週6回', value: 6 },
+    { label: '毎日', value: 7 },
+    { label: '特に決めてない', value: 8 },
   ]
 
   // 選択肢表示用のヘルパー関数
@@ -102,7 +103,10 @@ export default function ProfileEditScreen() {
         <View style={styles.formContainer}>
           {/* 世帯人数 */}
           <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+            <Users size={22} color="#156486" />
             <Text style={styles.label}>世帯人数</Text>
+            </View>
             <TouchableOpacity
               style={styles.selectorContainer}
               onPress={() => showActionSheet(
@@ -121,7 +125,10 @@ export default function ProfileEditScreen() {
 
           {/* 自炊頻度 */}
           <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <CookingPot size={22} color="#156486" />
             <Text style={styles.label}>自炊頻度</Text>
+            </View>
             <TouchableOpacity
               style={styles.selectorContainer}
               onPress={() => showActionSheet(
@@ -140,7 +147,10 @@ export default function ProfileEditScreen() {
 
           {/* 買い物頻度 */}
           <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <ShoppingCart size={22} color="#156486" />
             <Text style={styles.label}>食材の買い物頻度</Text>
+            </View>
             <TouchableOpacity
               style={styles.selectorContainer}
               onPress={() => showActionSheet(
@@ -178,7 +188,7 @@ export default function ProfileEditScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#ffffff',
   },
   content: {
     flex: 1,
@@ -187,44 +197,52 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 20,
-    justifyContent: 'space-around',
+    paddingTop: 40,
   },
   section: {
-    backgroundColor: 'white',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   label: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 10,
+    color: '#1a1a1a',
+    // marginBottom: 12,
+    marginLeft: 12,
   },
   selectorContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    backgroundColor: '#f7fafc',
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 45,
+    paddingVertical: 14,
+    minHeight: 50,
   },
   selectorText: {
-    fontSize: 16,
-    color: '#2d3748',
+    fontSize: 17,
+    color: '#111827',
+    fontWeight: '600',
     flex: 1,
   },
   buttonContainer: {
@@ -234,8 +252,8 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#156486',
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: 24,
+    borderRadius: 24,
     alignItems: 'center',
     shadowColor: '#156486',
     shadowOffset: {

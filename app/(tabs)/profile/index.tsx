@@ -1,5 +1,5 @@
 import { router } from 'expo-router'
-import { Edit3, User } from 'lucide-react-native'
+import { CookingPot, Edit3, ShoppingCart, Users } from 'lucide-react-native'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -10,8 +10,8 @@ export default function ProfileScreen() {
         {/* ヘッダー */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>プロフィール</Text>
-            <Text style={styles.subtitle}>あなたの生活スタイル</Text>
+            <Text style={styles.title}>プロフィール情報</Text>
+            <Text style={styles.subtitle}>AIがより適した提案ができるようになります</Text>
           </View>
         </View>
 
@@ -21,7 +21,7 @@ export default function ProfileScreen() {
           <View style={styles.profileSection}>
             <Text style={styles.profileLabel}>世帯人数</Text>
             <View style={styles.profileValueContainer}>
-              <User size={18} color="#156486" />
+              <Users size={18} color="#156486" />
               <Text style={styles.profileValue}>1人</Text>
             </View>
           </View>
@@ -29,6 +29,7 @@ export default function ProfileScreen() {
           <View style={styles.profileSection}>
             <Text style={styles.profileLabel}>自炊頻度</Text>
             <View style={styles.profileValueContainer}>
+              <CookingPot size={18} color="#156486" />
               <Text style={styles.profileValue}>週3回</Text>
             </View>
           </View>
@@ -36,6 +37,7 @@ export default function ProfileScreen() {
           <View style={styles.profileSection}>
             <Text style={styles.profileLabel}>食材の買い物頻度</Text>
             <View style={styles.profileValueContainer}>
+              <ShoppingCart size={18} color="#156486" />
               <Text style={styles.profileValue}>週1回</Text>
             </View>
           </View>
@@ -59,7 +61,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#ffffff',
   },
   content: {
     flex: 1,
@@ -69,19 +71,20 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 20,
     backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomWidth: 2,
+    borderBottomColor: '#e5e5e5',
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#156486',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 15,
-    color: '#4a5568',
-    lineHeight: 20,
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 22,
+    fontWeight: '500',
   },
   profileContainer: {
     flex: 1,
@@ -89,62 +92,65 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   profileSection: {
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 20,
-    paddingVertical: 18,
+    paddingVertical: 20,
     borderRadius: 12,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   profileLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#4b5563',
+    marginBottom: 10,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   profileValueContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2d3748',
-    marginLeft: 8,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginLeft: 10,
   },
   buttonContainer: {
     paddingHorizontal: 20,
     paddingBottom: 20,
     paddingTop: 16,
+    marginBottom: 150,
   },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#156486',
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 24,
+    borderRadius: 24,
     shadowColor: '#156486',
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.5,
-    elevation: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
   },
   editButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
     marginLeft: 8,
   },
