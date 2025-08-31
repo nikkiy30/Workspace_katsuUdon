@@ -19,7 +19,7 @@ export class DatabaseSchema {
       this.createWasteRecordsTable();
       // this.createFoodItemsTable();
       // this.createDiagnosisHistoryTable();
-      console.log('全テーブルの作成が完了しました');
+      console.log('全テーブルの作成が完了しました（既存の場合はスキップ）');
     } catch (error) {
       console.error('テーブル作成エラー:', error);
       throw error;
@@ -39,7 +39,7 @@ export class DatabaseSchema {
       )
     `;
     this.db.execSync(sql);
-    console.log('profileテーブルを作成しました');
+    console.log('profileテーブル準備完了');
   }
 
   /**
@@ -55,7 +55,7 @@ export class DatabaseSchema {
       )
     `;
     this.db.execSync(sql);
-    console.log('waste_recordsテーブルを作成しました');
+    console.log('waste_recordsテーブル準備完了');
   }
 
   /**

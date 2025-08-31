@@ -15,12 +15,13 @@ export default function TabLayout() {
       try {
         const schema = new DatabaseSchema();
         
+        //! テーブル全削除（デバッグ用）
         // 一時的：既存テーブルを削除してから再作成
         // console.log('データベースをリセット中...');
         // schema.dropAllTables();
-        schema.createTables();
+        // console.log('データベース初期化完了');
         
-        console.log('データベース初期化完了');
+        schema.createTables();
       } catch (error) {
         console.error('データベース初期化エラー:', error);
       }
