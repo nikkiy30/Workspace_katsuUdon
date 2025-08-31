@@ -2,23 +2,17 @@
  //! プロフィールと廃棄データベース以外は一旦適当
  */
 
-export interface User {
+export interface Profile {
   household_size: string;
   cooking_frequency: string;
   shopping_frequency: string;
 }
 
 export interface WasteRecord {
-  id?: number;
-  user_id: number;
+  id: number;
   food_name: string;
-  amount?: string;
-  waste_reason?: 'expired' | 'spoiled' | 'too_much' | 'dislike' | 'other';
-  purchase_date?: string;
-  expiry_date?: string;
-  waste_date: string;
-  notes?: string;
-  created_at?: string;
+  throw_amount: string;
+  buy_amount: string;
 }
 
 export interface FoodItem {
@@ -60,10 +54,4 @@ export interface WasteStatistics {
   waste_this_month: number;
   most_wasted_food: string;
   average_waste_per_month: number;
-}
-
-export interface UserProfile {
-  user: User;
-  waste_statistics: WasteStatistics;
-  recent_waste_records: WasteRecord[];
 }

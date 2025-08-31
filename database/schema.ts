@@ -39,7 +39,7 @@ export class DatabaseSchema {
       )
     `;
     this.db.execSync(sql);
-    console.log('usersテーブルを作成しました');
+    console.log('profileテーブルを作成しました');
   }
 
   /**
@@ -49,16 +49,9 @@ export class DatabaseSchema {
     const sql = `
       CREATE TABLE IF NOT EXISTS waste_records (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
         food_name TEXT NOT NULL,
-        amount TEXT,
-        waste_reason TEXT,
-        purchase_date DATE,
-        expiry_date DATE,
-        waste_date DATE NOT NULL,
-        notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        throw_amount TEXT NOT NULL,
+        buy_amount TEXT NOT NULL
       )
     `;
     this.db.execSync(sql);
@@ -120,7 +113,7 @@ export class DatabaseSchema {
       this.db.execSync('DROP TABLE IF EXISTS diagnosis_history');
       this.db.execSync('DROP TABLE IF EXISTS food_items');
       this.db.execSync('DROP TABLE IF EXISTS waste_records');
-      this.db.execSync('DROP TABLE IF EXISTS users');
+      this.db.execSync('DROP TABLE IF EXISTS profile');
       console.log('全テーブルを削除しました');
     } catch (error) {
       console.error('テーブル削除エラー:', error);

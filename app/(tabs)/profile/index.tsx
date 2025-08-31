@@ -1,10 +1,39 @@
-import { testSQLite } from '@/database/sqliteTest'
-import { router } from 'expo-router'
+import { UserDB } from '@/database/db/Userdb'
+import { router, useFocusEffect } from 'expo-router'
 import { CookingPot, Edit3, ShoppingCart, Users } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function ProfileScreen() {
+  const [profile, setProfile] = useState({
+    household_size: '1人',
+    cooking_frequency: '週3回',
+    shopping_frequency: '週3回',
+  })
+  const userDB = new UserDB()
+
+  // 画面にフォーカスした時にプロフィールを再読み込み
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile()
+    }, [])
+  )
+
+  const loadProfile = async () => {
+    try {
+      const savedProfile = userDB.getProfile()
+      if (savedProfile) {
+        setProfile({
+          household_size: savedProfile.household_size || '1人',
+          cooking_frequency: savedProfile.cooking_frequency || '週3回', 
+          shopping_frequency: savedProfile.shopping_frequency || '週回',
+        })
+      }
+    } catch (error) {
+      console.error('プロフィール読み込みエラー:', error)
+    }
+  }
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -18,12 +47,11 @@ export default function ProfileScreen() {
 
         {/* プロフィール表示エリア */}
         <View style={styles.profileContainer}>
-          {/* TODO: 実際のプロフィールデータを表示 */}
           <View style={styles.profileSection}>
             <Text style={styles.profileLabel}>世帯人数</Text>
             <View style={styles.profileValueContainer}>
               <Users size={18} color="#156486" />
-              <Text style={styles.profileValue}>1人</Text>
+              <Text style={styles.profileValue}>{profile.household_size}</Text>
             </View>
           </View>
 
@@ -31,7 +59,7 @@ export default function ProfileScreen() {
             <Text style={styles.profileLabel}>自炊頻度</Text>
             <View style={styles.profileValueContainer}>
               <CookingPot size={18} color="#156486" />
-              <Text style={styles.profileValue}>週3回</Text>
+              <Text style={styles.profileValue}>{profile.cooking_frequency}</Text>
             </View>
           </View>
 
@@ -39,7 +67,7 @@ export default function ProfileScreen() {
             <Text style={styles.profileLabel}>食材の買い物頻度</Text>
             <View style={styles.profileValueContainer}>
               <ShoppingCart size={18} color="#156486" />
-              <Text style={styles.profileValue}>週1回</Text>
+              <Text style={styles.profileValue}>{profile.shopping_frequency}</Text>
             </View>
           </View>
         </View>
@@ -52,18 +80,6 @@ export default function ProfileScreen() {
           >
             <Edit3 size={20} color="#ffffff" />
             <Text style={styles.editButtonText}>プロフィールを編集</Text>
-          </TouchableOpacity>
-          
-          {/* SQLiteテストボタン */}
-          <TouchableOpacity 
-            style={styles.testButton} 
-            onPress={() => {
-              console.log('SQLiteテスト開始');
-              const result = testSQLite();
-              console.log('SQLiteテスト結果:', result);
-            }}
-          >
-            <Text style={styles.testButtonText}>SQLiteテスト</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -166,18 +182,5 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     marginLeft: 8,
-  },
-  testButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: '#10b981',
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  testButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
   },
 })

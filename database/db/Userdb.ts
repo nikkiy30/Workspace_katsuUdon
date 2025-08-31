@@ -1,138 +1,88 @@
 import { DatabaseConnection } from '../connect';
-import { DatabaseResult, User } from '../types';
+import { Profile } from '../types';
 
-/**
- * ユーザーDAO（データアクセスオブジェクト）
- */
+
 export class UserDB {
   private db: import('expo-sqlite').SQLiteDatabase;
+  private readonly SINGLE_USER_ID = 1;
 
   constructor() {
     this.db = DatabaseConnection.getInstance().getDatabase();
   }
 
-  /**
-   * ユーザーを作成
+    /**
+   * プロフィールを取得
    */
-  public create(user: Omit<User, 'id' | 'created_at' | 'updated_at'>): DatabaseResult {
+  public getProfile(): Profile | null {
     try {
-      const sql = `
-        INSERT INTO users (email, name, household_size, cooking_frequency, dietary_restrictions, shopping_frequency)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
-      const result = this.db.runSync(sql, [
-        user.household_size || '1人',
-        user.cooking_frequency || '週3回',
-        user.shopping_frequency || '週2回'
-      ]);
-      console.log('ユーザーを作成しました:', result);
-      return result;
-    } catch (error) {
-      console.error('ユーザー作成エラー:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * IDでユーザーを取得
-   */
-  public findById(id: number): User | null {
-    try {
-      const sql = 'SELECT * FROM users WHERE id = ?';
-      const result = this.db.getFirstSync(sql, [id]);
+      const sql = 'SELECT * FROM profile WHERE id = ?';
+      const result = this.db.getFirstSync(sql, [this.SINGLE_USER_ID]) as any;
+      
       if (result) {
-        return this.mapRowToUser(result);
+        return {
+          household_size: result.household_size,
+          cooking_frequency: result.cooking_frequency,
+          shopping_frequency: result.shopping_frequency,
+        };
       }
       return null;
     } catch (error) {
-      console.error('ユーザー取得エラー:', error);
+      console.error('プロフィール取得エラー:', error);
       throw error;
     }
   }
 
   /**
-   * メールアドレスでユーザーを取得
+   * プロフィールを保存（作成または更新）
    */
-  public findByEmail(email: string): User | null {
+  public saveProfile(profile: Profile): void {
     try {
-      const sql = 'SELECT * FROM users WHERE email = ?';
-      const result = this.db.getFirstSync(sql, [email]);
-      if (result) {
-        return this.mapRowToUser(result);
+      const existing = this.getProfile();
+      
+      if (existing) {
+        // 更新
+        const sql = `
+          UPDATE profile 
+          SET household_size = ?, cooking_frequency = ?, shopping_frequency = ?
+          WHERE id = ?
+        `;
+        this.db.runSync(sql, [
+          profile.household_size,
+          profile.cooking_frequency,
+          profile.shopping_frequency,
+          this.SINGLE_USER_ID
+        ]);
+        console.log('プロフィールを更新しました');
+      } else {
+        // 新規作成
+        const sql = `
+          INSERT INTO profile (id, household_size, cooking_frequency, shopping_frequency)
+          VALUES (?, ?, ?, ?)
+        `;
+        this.db.runSync(sql, [
+          this.SINGLE_USER_ID,
+          profile.household_size,
+          profile.cooking_frequency,
+          profile.shopping_frequency
+        ]);
+        console.log('プロフィールを作成しました');
       }
-      return null;
     } catch (error) {
-      console.error('ユーザー取得エラー:', error);
+      console.error('プロフィール保存エラー:', error);
       throw error;
     }
   }
 
   /**
-   * ユーザーを更新
+   * プロフィールが存在するかチェックしてBoolでも返そうかと
    */
-  public update(id: number, user: Partial<Omit<User, 'id' | 'created_at'>>): DatabaseResult {
+  public hasProfile(): boolean {
     try {
-      const sql = `
-        UPDATE users 
-        SET name = ?, household_size = ?, cooking_frequency = ?, 
-            dietary_restrictions = ?, shopping_frequency = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `;
-      const currentUser = this.findById(id);
-      if (!currentUser) {
-        throw new Error('ユーザーが見つかりません');
-      }
-
-      const result = this.db.runSync(sql, [
-        user.household_size || '1人',
-        user.cooking_frequency || '週3回',
-        user.shopping_frequency || '週2回',
-      ]);
-      console.log('ユーザーを更新しました:', result);
-      return result;
+      const profile = this.getProfile();
+      return profile !== null;
     } catch (error) {
-      console.error('ユーザー更新エラー:', error);
-      throw error;
+      console.error('プロフィール存在確認エラー:', error);
+      return false;
     }
-  }
-
-  /**
-   * ユーザーを削除
-   */
-  public delete(id: number): DatabaseResult {
-    try {
-      const sql = 'DELETE FROM users WHERE id = ?';
-      const result = this.db.runSync(sql, [id]);
-      console.log('ユーザーを削除しました:', result);
-      return result;
-    } catch (error) {
-      console.error('ユーザー削除エラー:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 全ユーザーを取得
-   */
-  public findAll(): User[] {
-    try {
-      const sql = 'SELECT * FROM users ORDER BY created_at DESC';
-      const results = this.db.getAllSync(sql);
-      return results.map((row: any) => this.mapRowToUser(row));
-    } catch (error) {
-      console.error('ユーザー一覧取得エラー:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * データベースの行をUserオブジェクトにマッピング
-   */
-  private mapRowToUser(row: any): User {
-    return {
-      household_size: row.household_size,
-      cooking_frequency: row.cooking_frequency,
-      shopping_frequency: row.shopping_frequency,
-    };
   }
 }

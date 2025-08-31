@@ -70,7 +70,6 @@ export class DatabaseInitializer {
         shopping_frequency: '週2回'
       };
 
-      userDB.create(testUser);
       
       console.log('テストデータ挿入完了！');
     } catch (error) {
@@ -92,11 +91,7 @@ export class DatabaseInitializer {
 
       if (tables.includes('profile')) {
         const userDB = new UserDB();
-        const users = userDB.findAll();
-        console.log('ユーザー数:', users.length);
-        if (users.length > 0) {
-          console.log('最初のユーザー:', users[0]);
-        }
+
       }
       
       console.log('=== 確認完了 ===');

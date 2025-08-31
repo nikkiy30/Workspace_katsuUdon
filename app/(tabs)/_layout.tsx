@@ -1,12 +1,33 @@
 import { Tabs } from 'expo-router';
 import { BotMessageSquare, CalendarCheck2, House, UserRoundPen } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
+import { DatabaseSchema } from '@/database/schema';
 
 export default function TabLayout() {
+  // データベース初期化
+  useEffect(() => {
+    const initializeDatabase = async () => {
+      try {
+        const schema = new DatabaseSchema();
+        
+        // 一時的：既存テーブルを削除してから再作成
+        // console.log('データベースをリセット中...');
+        // schema.dropAllTables();
+        schema.createTables();
+        
+        console.log('データベース初期化完了');
+      } catch (error) {
+        console.error('データベース初期化エラー:', error);
+      }
+    };
+
+    initializeDatabase();
+  }, []);
   return (
     <Tabs
       screenOptions={{

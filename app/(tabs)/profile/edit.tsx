@@ -1,54 +1,71 @@
+import { UserDB } from '@/database/db/Userdb'
+import { Profile } from '@/database/types'
 import { router } from 'expo-router'
 import { ChevronDown, CookingPot, ShoppingCart, Users } from 'lucide-react-native'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ActionSheetIOS, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-interface ProfileData {
-  householdSize: number
-  cookingFrequency: number
-  shoppingFrequency: number
-}
-
 export default function ProfileEditScreen() {
-  const [profile, setProfile] = useState<ProfileData>({
-    householdSize: 1,
-    cookingFrequency: 3,
-    shoppingFrequency: 1,
+  const [profile, setProfile] = useState<Profile>({
+    household_size: "1人",
+    cooking_frequency: "週3回",
+    shopping_frequency: "週3回",
   })
   const [loading, setLoading] = useState(false)
+  const userDB = new UserDB()
+
+  // 既存プロフィールを読み込み
+  useEffect(() => {
+    loadProfile()
+  }, [])
+
+  const loadProfile = async () => {
+    try {
+      const savedProfile = userDB.getProfile()
+      if (savedProfile) {
+        setProfile({
+          household_size: savedProfile.household_size || '1人',
+          cooking_frequency: savedProfile.cooking_frequency || '週3回',
+          shopping_frequency: savedProfile.shopping_frequency || '週1回'
+        })
+      }
+    } catch (error) {
+      console.error('プロフィール読み込みエラー:', error)
+    }
+  }
 
   // 選択肢の定義
   const householdOptions = [
-    { label: '1人', value: 1 },
-    { label: '2人', value: 2 },
-    { label: '3人', value: 3 },
-    { label: '4人', value: 4 },
-    { label: '5人', value: 5 },
-    { label: '6人', value: 6 },
-    { label: '7人以上', value: 7 },
+    { label: '1人', value: "1人" },
+    { label: '2人', value: "2人" },
+    { label: '3人', value: "3人" },
+    { label: '4人', value: "4人" },
+    { label: '5人', value: "5人" },
+    { label: '6人', value: "6人" },
+    { label: '7人以上', value: "7人以上" },
   ]
 
   const cookingOptions = [
-    { label: 'ほとんどしない', value: 0 },
-    { label: '週1回', value: 1 },
-    { label: '週2回', value: 2 },
-    { label: '週3回', value: 3 },
-    { label: '週4回', value: 4 },
-    { label: '週5回', value: 5 },
-    { label: '週6回', value: 6 },
-    { label: '毎日', value: 7 },
+    { label: 'ほとんどしない', value: "ほとんどしない" },
+    { label: '週1回', value: "週1回" },
+    { label: '週2回', value: "週2回" },
+    { label: '週3回', value: "週3回" },
+    { label: '週4回', value: "週4回" },
+    { label: '週5回', value: "週5回" },
+    { label: '週6回', value: "週6回" },
+    { label: '毎日', value: "毎日" },
   ]
 
   const shoppingOptions = [
-    { label: '週1回', value: 1 },
-    { label: '週2回', value: 2 },
-    { label: '週3回', value: 3 },
-    { label: '週4回', value: 4 },
-    { label: '週5回', value: 5 },
-    { label: '週6回', value: 6 },
-    { label: '毎日', value: 7 },
-    { label: '特に決めてない', value: 8 },
+    { label: '週1回', value: "週1回" },
+    { label: '週2回', value: "週2回" },
+    { label: '週3回', value: "週3回" },
+    { label: '週4回', value: "週4回" },
+    { label: '週5回', value: "週5回" },
+    { label: '週6回', value: "週6回" },
+    { label: '毎日', value: "毎日" },
+    { label: '特に決めてない', value: "特に決めてない" },
   ]
 
   // 選択肢表示用のヘルパー関数
@@ -81,16 +98,19 @@ export default function ProfileEditScreen() {
   const handleSave = async () => {
     setLoading(true)
     try {
-      // TODO: 実際の保存処理を実装
-      console.log('Profile to save:', profile)
+      // 直接データベースに保存（複雑な変換なし）
+      userDB.saveProfile({
+        household_size: profile.household_size,
+        cooking_frequency: profile.cooking_frequency,
+        shopping_frequency: profile.shopping_frequency
+      })
       
-      setTimeout(() => {
-        Alert.alert('成功', 'プロフィールを保存しました', [
-          { text: 'OK', onPress: () => router.back() }
-        ])
-        setLoading(false)
-      }, 1000)
+      Alert.alert('成功', 'プロフィールを保存しました', [
+        { text: 'OK', onPress: () => router.back() }
+      ])
+      setLoading(false)
     } catch (error) {
+      console.error('保存エラー:', error)
       Alert.alert('エラー', '保存に失敗しました')
       setLoading(false)
     }
@@ -111,13 +131,13 @@ export default function ProfileEditScreen() {
               style={styles.selectorContainer}
               onPress={() => showActionSheet(
                 householdOptions,
-                profile.householdSize,
-                (value) => setProfile({ ...profile, householdSize: value }),
+                profile.household_size,
+                (value) => setProfile({ ...profile, household_size: value }),
                 '世帯人数を選択してください'
               )}
             >
               <Text style={styles.selectorText}>
-                {getDisplayValue(householdOptions, profile.householdSize)}
+                {getDisplayValue(householdOptions, profile.household_size)}
               </Text>
               <ChevronDown size={20} color="#4a5568" />
             </TouchableOpacity>
@@ -133,13 +153,13 @@ export default function ProfileEditScreen() {
               style={styles.selectorContainer}
               onPress={() => showActionSheet(
                 cookingOptions,
-                profile.cookingFrequency,
-                (value) => setProfile({ ...profile, cookingFrequency: value }),
+                profile.cooking_frequency,
+                (value) => setProfile({ ...profile, cooking_frequency: value }),
                 '自炊頻度を選択してください'
               )}
             >
               <Text style={styles.selectorText}>
-                {getDisplayValue(cookingOptions, profile.cookingFrequency)}
+                {getDisplayValue(cookingOptions, profile.cooking_frequency)}
               </Text>
               <ChevronDown size={20} color="#4a5568" />
             </TouchableOpacity>
@@ -155,13 +175,13 @@ export default function ProfileEditScreen() {
               style={styles.selectorContainer}
               onPress={() => showActionSheet(
                 shoppingOptions,
-                profile.shoppingFrequency,
-                (value) => setProfile({ ...profile, shoppingFrequency: value }),
+                profile.shopping_frequency,
+                (value) => setProfile({ ...profile, shopping_frequency: value }),
                 '買い物頻度を選択してください'
               )}
             >
               <Text style={styles.selectorText}>
-                {getDisplayValue(shoppingOptions, profile.shoppingFrequency)}
+                {getDisplayValue(shoppingOptions, profile.shopping_frequency)}
               </Text>
               <ChevronDown size={20} color="#4a5568" />
             </TouchableOpacity>
