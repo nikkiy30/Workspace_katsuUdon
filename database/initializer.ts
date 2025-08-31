@@ -1,6 +1,6 @@
 import { DatabaseConnection } from './connect';
+import { UserDB } from './db/Userdb';
 import { DatabaseSchema } from './schema';
-import { UserDAO } from './dao/UserDAO';
 
 /**
  * データベース初期化クラス
@@ -61,19 +61,16 @@ export class DatabaseInitializer {
     try {
       console.log('テストデータ挿入開始...');
       
-      const userDAO = new UserDAO();
+      const userDB = new UserDB();
       
       // テストユーザーを作成
       const testUser = {
-        email: 'test@example.com',
-        name: 'テストユーザー',
-        household_size: 2,
-        cooking_frequency: 'weekly' as const,
-        dietary_restrictions: ['グルテンフリー'],
-        shopping_frequency: 'weekly' as const
+        household_size: '1人',
+        cooking_frequency: '週3回',
+        shopping_frequency: '週2回'
       };
-      
-      userDAO.create(testUser);
+
+      userDB.create(testUser);
       
       console.log('テストデータ挿入完了！');
     } catch (error) {
@@ -92,10 +89,10 @@ export class DatabaseInitializer {
       
       const tables = this.schema.getTableList();
       console.log('作成されたテーブル:', tables);
-      
-      if (tables.includes('users')) {
-        const userDAO = new UserDAO();
-        const users = userDAO.findAll();
+
+      if (tables.includes('profile')) {
+        const userDB = new UserDB();
+        const users = userDB.findAll();
         console.log('ユーザー数:', users.length);
         if (users.length > 0) {
           console.log('最初のユーザー:', users[0]);

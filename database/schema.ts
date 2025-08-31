@@ -15,10 +15,10 @@ export class DatabaseSchema {
    */
   public createTables(): void {
     try {
-      this.createUsersTable();
+      this.createProfileTable();
       this.createWasteRecordsTable();
-      this.createFoodItemsTable();
-      this.createDiagnosisHistoryTable();
+      // this.createFoodItemsTable();
+      // this.createDiagnosisHistoryTable();
       console.log('全テーブルの作成が完了しました');
     } catch (error) {
       console.error('テーブル作成エラー:', error);
@@ -27,20 +27,15 @@ export class DatabaseSchema {
   }
 
   /**
-   * ユーザーテーブル
+   * ユーザープロフィールテーブル
    */
-  private createUsersTable(): void {
+  private createProfileTable(): void {
     const sql = `
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS profile (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        name TEXT,
-        household_size INTEGER DEFAULT 1,
-        cooking_frequency TEXT DEFAULT 'weekly',
-        dietary_restrictions TEXT, -- JSON形式で保存
-        shopping_frequency TEXT DEFAULT 'weekly',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        household_size TEXT DEFAULT "1人",
+        cooking_frequency TEXT DEFAULT "週3回",
+        shopping_frequency TEXT DEFAULT "週3回"
       )
     `;
     this.db.execSync(sql);

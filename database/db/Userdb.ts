@@ -1,10 +1,10 @@
 import { DatabaseConnection } from '../connect';
-import { User, DatabaseResult } from '../types';
+import { DatabaseResult, User } from '../types';
 
 /**
  * ユーザーDAO（データアクセスオブジェクト）
  */
-export class UserDAO {
+export class UserDB {
   private db: import('expo-sqlite').SQLiteDatabase;
 
   constructor() {
@@ -21,12 +21,9 @@ export class UserDAO {
         VALUES (?, ?, ?, ?, ?, ?)
       `;
       const result = this.db.runSync(sql, [
-        user.email,
-        user.name || null,
-        user.household_size || 1,
-        user.cooking_frequency || 'weekly',
-        JSON.stringify(user.dietary_restrictions || []),
-        user.shopping_frequency || 'weekly'
+        user.household_size || '1人',
+        user.cooking_frequency || '週3回',
+        user.shopping_frequency || '週2回'
       ]);
       console.log('ユーザーを作成しました:', result);
       return result;
@@ -87,14 +84,9 @@ export class UserDAO {
       }
 
       const result = this.db.runSync(sql, [
-        user.name || null,
-        user.household_size !== undefined ? user.household_size : currentUser.household_size || 1,
-        user.cooking_frequency !== undefined ? user.cooking_frequency : currentUser.cooking_frequency || 'weekly',
-        user.dietary_restrictions !== undefined 
-          ? JSON.stringify(user.dietary_restrictions) 
-          : JSON.stringify(currentUser.dietary_restrictions || []),
-        user.shopping_frequency !== undefined ? user.shopping_frequency : currentUser.shopping_frequency || 'weekly',
-        id
+        user.household_size || '1人',
+        user.cooking_frequency || '週3回',
+        user.shopping_frequency || '週2回',
       ]);
       console.log('ユーザーを更新しました:', result);
       return result;
@@ -138,15 +130,9 @@ export class UserDAO {
    */
   private mapRowToUser(row: any): User {
     return {
-      id: row.id,
-      email: row.email,
-      name: row.name,
       household_size: row.household_size,
       cooking_frequency: row.cooking_frequency,
-      dietary_restrictions: row.dietary_restrictions ? JSON.parse(row.dietary_restrictions) : [],
       shopping_frequency: row.shopping_frequency,
-      created_at: row.created_at,
-      updated_at: row.updated_at
     };
   }
 }

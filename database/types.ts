@@ -1,17 +1,11 @@
 /**
- * データベースの型定義
+ //! プロフィールと廃棄データベース以外は一旦適当
  */
 
 export interface User {
-  id?: number;
-  email: string;
-  name?: string;
-  household_size?: number;
-  cooking_frequency?: 'daily' | 'weekly' | 'monthly' | 'rarely';
-  dietary_restrictions?: string[]; // JSONで保存
-  shopping_frequency?: 'daily' | 'weekly' | 'monthly';
-  created_at?: string;
-  updated_at?: string;
+  household_size: string;
+  cooking_frequency: string;
+  shopping_frequency: string;
 }
 
 export interface WasteRecord {
