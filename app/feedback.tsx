@@ -1,12 +1,23 @@
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import { TrendingDown, Beef, Carrot, Milk } from 'lucide-react-native';
+import { GoogleGenAI } from '@google/genai';
+import Markdown from 'react-native-markdown-display';
 
 const screenWidth = Dimensions.get('window').width;
+
+// Gemini APIの設定
+const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+const genAI = new GoogleGenAI({ apiKey: apiKey });
 
 export default function FeedbackScreen() {
   // サンプルデータ
   const monthlyTotal = 687; // グラム
+  
+  // AI改善提案の状態
+  const [aiSuggestion, setAiSuggestion] = useState<string>('');
+  const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState<boolean>(false);
   
   // 週次データ（過去4週間）
   const weeklyData = {
@@ -54,6 +65,68 @@ export default function FeedbackScreen() {
         return <TrendingDown size={20} color="#6B7280" />;
     }
   };
+
+  /**
+   * AI改善提案を生成
+   */
+  const generateAISuggestion = async () => {
+    if (!apiKey) {
+      console.warn('Gemini APIキーが設定されていません');
+      return;
+    }
+
+    setIsGeneratingSuggestion(true);
+    try {
+      const prompt = `
+あなたは食品廃棄削減の専門家です。
+以下の廃棄データを分析して、具体的で実用的な改善提案を日本語で提供してください。
+
+廃棄データ:
+- 今月の廃棄量: ${monthlyTotal}グラム
+- 先月比: -12% ↓
+- 週次データ: 第1週(180g), 第2週(150g), 第3週(200g), 第4週(157g)
+- 食材種類別廃棄量:
+  - 肉類: 250g
+  - 野菜: 200g
+  - 乳製品: 150g
+  - その他: 87g
+
+改善提案の要件:
+1. データに基づいた具体的な分析
+3. 食材別の具体的なアドバイス
+4. 前向きで励ましのメッセージ
+
+出力形式:
+- 簡潔で分かりやすい文章
+- 読みやすい1段落の文章
+- 50文字程度
+- 箇条書きで書かないでください
+
+回答例:
+「今月の廃棄量は前月比12%減少と改善傾向にあります。特に野菜の廃棄が多めなので、購入前の冷蔵庫チェックと使い切りレシピの活用をお勧めします。肉類は適切な保存方法で鮮度を保ち、乳製品は少量パックを選ぶことで無駄を減らせます。小さな改善の積み重ねで、さらに良い結果が期待できます！」
+`;
+
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: prompt,
+      });
+
+      const suggestion = response.text ?? 'AI改善提案の生成に失敗しました。';
+      setAiSuggestion(suggestion);
+    } catch (error) {
+      console.error('AI改善提案生成エラー:', error);
+      setAiSuggestion('AI改善提案の生成中にエラーが発生しました。しばらくしてから再度お試しください。');
+    } finally {
+      setIsGeneratingSuggestion(false);
+    }
+  };
+
+  /**
+   * コンポーネントマウント時にAI改善提案を生成
+   */
+  useEffect(() => {
+    generateAISuggestion();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -124,10 +197,16 @@ export default function FeedbackScreen() {
 
         {/* 改善提案 */}
         <View style={styles.suggestionCard}>
-          <Text style={styles.suggestionTitle}>💡 改善提案</Text>
-          <Text style={styles.suggestionText}>
-            野菜の廃棄が多めです。購入前に冷蔵庫をチェックし、必要な分だけ購入することを心がけましょう。
-          </Text>
+          <Text style={styles.suggestionTitle}>💡 AI改善提案</Text>
+          {isGeneratingSuggestion ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>AIが改善提案を生成中...</Text>
+            </View>
+          ) : (
+            <Markdown style={markdownStyles}>
+              {aiSuggestion}
+            </Markdown>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -304,5 +383,72 @@ const styles = StyleSheet.create({
     color: '#92400E',
     lineHeight: 20,
   },
+  suggestionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  refreshButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#156486',
+    borderRadius: 6,
+  },
+  refreshButtonText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#92400E',
+    fontStyle: 'italic',
+  },
 });
+
+// Markdownスタイル
+const markdownStyles = {
+  body: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#92400E',
+  },
+  heading1: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#92400E',
+  },
+  heading2: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#92400E',
+  },
+  paragraph: {
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  strong: {
+    fontWeight: '600' as const,
+    color: '#92400E',
+  },
+  list_item: {
+    marginBottom: 4,
+  },
+  bullet_list: {
+    marginBottom: 12,
+  },
+  code_inline: {
+    backgroundColor: '#f0f0f0',
+    padding: 2,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+  },
+};
 
