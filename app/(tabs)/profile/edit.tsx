@@ -7,14 +7,14 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 interface ProfileData {
   householdSize: number
   cookingFrequency: number
-  shoppingFrequency: string
+  shoppingFrequency: number
 }
 
 export default function ProfileEditScreen() {
   const [profile, setProfile] = useState<ProfileData>({
     householdSize: 1,
     cookingFrequency: 3,
-    shoppingFrequency: 'weekly',
+    shoppingFrequency: 1,
   })
   const [loading, setLoading] = useState(false)
 

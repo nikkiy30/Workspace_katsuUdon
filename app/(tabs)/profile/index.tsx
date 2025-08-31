@@ -1,3 +1,4 @@
+import { testSQLite } from '@/database/sqliteTest'
 import { router } from 'expo-router'
 import { CookingPot, Edit3, ShoppingCart, Users } from 'lucide-react-native'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -51,6 +52,18 @@ export default function ProfileScreen() {
           >
             <Edit3 size={20} color="#ffffff" />
             <Text style={styles.editButtonText}>プロフィールを編集</Text>
+          </TouchableOpacity>
+          
+          {/* SQLiteテストボタン */}
+          <TouchableOpacity 
+            style={styles.testButton} 
+            onPress={() => {
+              console.log('SQLiteテスト開始');
+              const result = testSQLite();
+              console.log('SQLiteテスト結果:', result);
+            }}
+          >
+            <Text style={styles.testButtonText}>SQLiteテスト</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -153,5 +166,18 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  testButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 })
