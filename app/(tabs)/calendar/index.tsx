@@ -3,10 +3,10 @@
  * 初心者向け：カレンダー表示と基本操作の実装
  */
 
-import AddPlanModal from '@/components/AddPlanModal';
-import { loadCookingPlans } from '@/services/storageService';
-import { CalendarMarkings, CookingPlan } from '@/types/calendar';
-import { formatDate, formatTime12Hour, getTodayString } from '@/utils/dateUtils';
+import AddPlanModal from './AddPlanModal';
+import { loadCookingPlans } from './storage';
+import { CalendarMarkings, CookingPlan } from './types';
+import { formatDate, formatTime12Hour, getTodayString } from './utils';
 import { Stack } from 'expo-router';
 import { ChefHat, Clock, Plus, Users } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
