@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CookingPlan, AppSettings } from '@/types/calendar';
+import { CookingPlan, AppSettings } from './types';
 
 // ストレージのキー定数
 const STORAGE_KEYS = {
