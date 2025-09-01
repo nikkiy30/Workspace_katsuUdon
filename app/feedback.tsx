@@ -15,6 +15,40 @@ export default function FeedbackScreen() {
   // ScrollViewのref
   const scrollViewRef = React.useRef<ScrollView>(null);
 
+  // 今月の廃棄一覧データ（ダミーデータ）
+  const monthlyWasteItems = [
+    {
+      name: '鶏むね肉',
+      amount: '200g',
+      date: '2024-01-15 18:30',
+    },
+    {
+      name: 'ブロッコリー',
+      amount: '150g',
+      date: '2024-01-16 12:00',
+    },
+    {
+      name: '牛乳',
+      amount: '500ml',
+      date: '2024-01-22 19:15',
+    },
+    {
+      name: 'トマト',
+      amount: '100g',
+      date: '2024-01-29 14:20',
+    },
+    {
+      name: '玉ねぎ',
+      amount: '80g',
+      date: '2024-01-30 16:45',
+    },
+    {
+      name: 'パン',
+      amount: '6枚',
+      date: '2024-02-05 08:30',
+    },
+  ];
+
   // 月次データの配列
   const monthlyData = [
     {
@@ -40,11 +74,7 @@ export default function FeedbackScreen() {
   // サンプルデータ
   const monthlyTotal = monthlyData[0].total; // グラム
   
-  // 食材種類別廃棄量データ
-  const meatWaste = 500; // 肉類廃棄量（グラム）
-  const vegetableWaste = 200; // 野菜廃棄量（グラム）
-  const dairyWaste = 150; // 乳製品廃棄量（グラム）
-  const otherWaste = 87; // その他廃棄量（グラム）
+
   
   // AI改善提案の状態
   const [aiSuggestion, setAiSuggestion] = useState<string>('');
@@ -61,16 +91,7 @@ export default function FeedbackScreen() {
     ]
   };
 
-  // 食材種類別データ
-  const categoryData = {
-    labels: ['肉類', '野菜', '乳製品', 'その他'],
-    datasets: [
-      {
-        data: [meatWaste, vegetableWaste, dairyWaste, otherWaste],
-        color: (opacity = 1) => `rgba(21, 100, 134, ${opacity})`,
-      }
-    ]
-  };
+
 
   const chartConfig = {
     backgroundGradientFrom: '#FFFFFF',
@@ -84,18 +105,7 @@ export default function FeedbackScreen() {
     },
   };
 
-  const getIconForCategory = (category: string) => {
-    switch (category) {
-      case '肉類':
-        return <Beef size={20} color="#EF4444" />;
-      case '野菜':
-        return <Carrot size={20} color="#F97316" />;
-      case '乳製品':
-        return <Milk size={20} color="#3B82F6" />;
-      default:
-        return <TrendingDown size={20} color="#6B7280" />;
-    }
-  };
+
 
   /**
    * AI改善提案を生成
@@ -113,14 +123,16 @@ export default function FeedbackScreen() {
 以下の廃棄データを分析して、具体的で実用的な改善提案を日本語で提供してください。
 
 廃棄データ:
-- 今月の廃棄量: ${monthlyTotal}グラム
+- 今月の廃棄量: ${monthlyTotal}回
 - 先月比: -12% ↓
-- 週次データ: 第1週(180g), 第2週(150g), 第3週(200g), 第4週(157g)
-- 食材種類別廃棄量:
-  - 肉類: ${meatWaste}g
-  - 野菜: ${vegetableWaste}g
-  - 乳製品: ${dairyWaste}g
-  - その他: ${otherWaste}g
+- 週次データ: 第1週(1回), 第2週(1回), 第3週(2回), 第4週(1回)
+- 廃棄物の内訳:
+  - 鶏むね肉: 200g
+  - ブロッコリー: 150g
+  - 牛乳: 500ml
+  - トマト: 100g
+  - 玉ねぎ: 80g
+  - パン: 6枚
 
 改善提案の要件:
 1. データに基づいた具体的な分析
@@ -232,36 +244,20 @@ export default function FeedbackScreen() {
           ))}
         </ScrollView>
 
-        {/* 食材種類別グラフ */}
-        <View style={styles.chartCard}>
-          <Text style={styles.chartTitle}>食材種類別廃棄量</Text>
+        {/* 今月の廃棄一覧 */}
+        <View style={styles.wasteListCard}>
+          <Text style={styles.wasteListTitle}>今月の廃棄一覧</Text>
           
-          <View style={styles.categoryList}>
-            {['肉類', '野菜', '乳製品', 'その他'].map((category, index) => {
-              const amount = categoryData.datasets[0].data[index];
-              const maxAmount = Math.max(...categoryData.datasets[0].data);
-              const barWidth = (amount / maxAmount) * 100;
-              
-              return (
-              <View key={category} style={styles.categoryItem}>
-                <View style={styles.categoryLeft}>
-                  <View style={styles.categoryIcon}>
-                    {getIconForCategory(category)}
-                  </View>
-                  <Text style={styles.categoryName}>{category}</Text>
+          <View style={styles.wasteList}>
+            {monthlyWasteItems.map((item, index) => (
+              <View key={index} style={styles.wasteItem}>
+                <View style={styles.wasteItemHeader}>
+                  <Text style={styles.wasteItemName}>{item.name}</Text>
+                  <Text style={styles.wasteItemAmount}>{item.amount}</Text>
                 </View>
-                <View style={styles.categoryBarContainer}>
-                  <View 
-                    style={[
-                      styles.categoryBar, 
-                      { width: `${barWidth}%` }
-                    ]} 
-                  />
-                </View>
-                <Text style={styles.categoryAmount}>{amount}g</Text>
+                <Text style={styles.wasteItemDate}>{item.date}</Text>
               </View>
-              );
-            })}
+            ))}
           </View>
         </View>
 
@@ -488,6 +484,53 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     width: screenWidth - 40, // 左右のパディングを考慮
+  },
+  wasteListCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  wasteListTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  wasteList: {
+    gap: 12,
+  },
+  wasteItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    paddingBottom: 12,
+  },
+  wasteItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  wasteItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    flex: 1,
+  },
+  wasteItemAmount: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#156486',
+  },
+  wasteItemDate: {
+    fontSize: 12,
+    color: '#6B7280',
   },
 });
 
