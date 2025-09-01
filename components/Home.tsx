@@ -10,11 +10,6 @@ const navigationItems = [
   { icon: MoreHorizontal, label: "メニュー" },
 ];
 
-const actionCards = [
-  { title: "AI買い物診断", hasArrow: false, route: '/(tabs)/diagnosis' },
-  { title: "廃棄入力", hasArrow: true, route: '/wasteInput' },
-];
-
 // ホーム画面
 export const Screen = () => {
   return (
@@ -30,9 +25,13 @@ export const Screen = () => {
           </ThemedText>
         </View>
 
-        <View style={styles.cardLarge}>
+        <TouchableOpacity
+          style={styles.cardLarge}
+          activeOpacity={0.8}
+          onPress={() => router.push('/feedback')}
+        >
           <ThemedText>廃棄量、節約量の成果</ThemedText>
-        </View>
+        </TouchableOpacity>
 
 {/* //! カレンダー画面はTabbarに移したのでホーム画面からは削除 */}
         {/* <TouchableOpacity
@@ -43,19 +42,13 @@ export const Screen = () => {
           <ThemedText>カレンダー</ThemedText>
         </TouchableOpacity> */}
 
-        <View style={styles.actionsRow}>
-          {actionCards.map((card, i) => (
-            <TouchableOpacity 
-              key={i} 
-              style={styles.actionCard} 
-              activeOpacity={0.8}
-              onPress={() => router.push(card.route as any)}
-            >
-              <ThemedText style={styles.actionTitle}>{card.title}</ThemedText>
-              {card.hasArrow && <ChevronRight color="#156486" size={18} />}
-            </TouchableOpacity>
-          ))}
-        </View>
+        <TouchableOpacity
+          style={styles.cardMedium}
+          activeOpacity={0.8}
+          onPress={() => router.push('/wasteInput')}
+        >
+          <ThemedText>廃棄入力</ThemedText>
+        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.bottomNav}>

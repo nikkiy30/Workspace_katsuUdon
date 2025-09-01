@@ -90,7 +90,7 @@ export default function WasteScreen() {
       Alert.alert('保存完了', '廃棄記録を保存しました', [
         {
           text: 'OK',
-          onPress: () => router.back(),
+          onPress: () => router.push('/feedback'),
         },
       ]);
     } catch (error) {
