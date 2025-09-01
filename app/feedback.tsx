@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import { TrendingDown, Beef, Carrot, Milk } from 'lucide-react-native';
+import { WasteDB } from '@/database/db/Wastedb';
+import type { WasteRecord } from '@/database/types';
 import { GoogleGenAI } from '@google/genai';
 import Markdown from 'react-native-markdown-display';
 
@@ -15,81 +17,189 @@ export default function FeedbackScreen() {
   // ScrollViewのref
   const scrollViewRef = React.useRef<ScrollView>(null);
 
-  // 今月の廃棄一覧データ（ダミーデータ）
-  const monthlyWasteItems = [
-    {
-      name: '鶏むね肉',
-      amount: '200g',
-      date: '2024-01-15 18:30',
-    },
-    {
-      name: 'ブロッコリー',
-      amount: '150g',
-      date: '2024-01-16 12:00',
-    },
-    {
-      name: '牛乳',
-      amount: '500ml',
-      date: '2024-01-22 19:15',
-    },
-    {
-      name: 'トマト',
-      amount: '100g',
-      date: '2024-01-29 14:20',
-    },
-    {
-      name: '玉ねぎ',
-      amount: '80g',
-      date: '2024-01-30 16:45',
-    },
-    {
-      name: 'パン',
-      amount: '6枚',
-      date: '2024-02-05 08:30',
-    },
-  ];
+  // 月次カードデータ型
+  type MonthlyCard = {
+    key: string; // 'YYYY-MM'
+    label: string; // 例: '9月'
+    total: number; // 月の廃棄回数
+    comparison: string; // 先月比表示（暫定で '—'）
+    weeklyData: number[]; // 第1〜4週
+  };
 
-  // 月次データの配列
-  const monthlyData = [
-    {
-      month: '今月',
-      total: 5,
-      comparison: '-12% ↓',
-      weeklyData: [1, 1, 2, 1],
-    },
-    {
-      month: '先月',
-      total: 6,
-      comparison: '+8% ↑',
-      weeklyData: [2, 1, 2, 1],
-    },
-    {
-      month: '2ヶ月前',
-      total: 3,
-      comparison: '-5% ↓',
-      weeklyData: [1, 1, 1, 0],
-    },
-  ];
-
-  // サンプルデータ
-  const monthlyTotal = monthlyData[0].total; // グラム
   
+
+  // 今月の廃棄一覧（DBから取得）
+  type WasteListItem = { id: number; name: string; amount: string; date: string };
+  const [monthlyWasteItems, setMonthlyWasteItems] = useState<WasteListItem[]>([]);
+
+  // 月次カードデータ（右端が今月）
+  const [monthlyData, setMonthlyData] = useState<MonthlyCard[]>([]);
+
+  // YYYY-MM キー
+  const toYMKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+  // 直近3ヶ月を左→右＝古い→新しい（右端が今月）で生成
+  const buildRecentMonthlyCards = (baseDate = new Date()): MonthlyCard[] => {
+    const cards: MonthlyCard[] = [];
+    for (let i = 2; i >= 0; i--) {
+      const dt = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
+      const month = dt.getMonth() + 1;
+      cards.push({
+        key: toYMKey(dt),
+        label: `${month}月`,
+        total: 0,
+        comparison: '—',
+        weeklyData: [0, 0, 0, 0],
+      });
+    }
+    return cards;
+  };
+
+  // 初期化：現在時刻から月カードを生成
+  useEffect(() => {
+    setMonthlyData(buildRecentMonthlyCards(new Date()));
+  }, []);
+
+  // スライド中の選択カード（右端が今月で初期化）
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number>(0);
+  const selectedMonthKey = monthlyData[selectedCardIndex]?.key;
+  const selectedMonthLabel = monthlyData[selectedCardIndex]?.label ?? '今月';
+
+  // カードスクロール完了時に表示中のインデックスを更新
+  const onCardsMomentumEnd = (e: any) => {
+    const pageWidth = screenWidth - 40; // 各カード幅
+    const x = e?.nativeEvent?.contentOffset?.x ?? 0;
+    const idx = Math.max(0, Math.min(monthlyData.length - 1, Math.round(x / pageWidth)));
+    if (idx !== selectedCardIndex) setSelectedCardIndex(idx);
+  };
+
+  // waste_records から実データを集計してカードに反映
+  useEffect(() => {
+    if (monthlyData.length === 0) return;
+
+    try {
+      const wasteDB = new WasteDB();
+      const records = wasteDB.getWasteRecords();
+
+      const updated = aggregateWasteForCards(monthlyData, records);
+
+      // 変化がない場合は set をスキップ
+      const changed = hasCardsChanged(monthlyData, updated);
+      if (changed) {
+        setMonthlyData(updated);
+      }
+    } catch (e) {
+      console.error('waste_records 集計エラー:', e);
+    }
+  }, [monthlyData.length]);
+
+  // 選択中の月の廃棄一覧をDBから取得して表示用に整形
+  useEffect(() => {
+    if (!selectedMonthKey) return;
+    try {
+      const wasteDB = new WasteDB();
+      const records = wasteDB.getWasteRecords();
+
+      const items: WasteListItem[] = records
+        .filter(r => {
+          const d = safeParseDate(r.created_at);
+          return d ? toYMKey(d) === selectedMonthKey : false;
+        })
+        .sort((a, b) => {
+          const ta = safeParseDate(a.created_at)?.getTime() ?? 0;
+          const tb = safeParseDate(b.created_at)?.getTime() ?? 0;
+          return tb - ta; // 新しい順
+        })
+        .map(r => ({
+          id: r.id,
+          name: r.food_name,
+          amount: r.throw_amount,
+          date: formatDateTime(safeParseDate(r.created_at)!),
+        }));
+
+      setMonthlyWasteItems(items);
+    } catch (e) {
+      console.error('今月の廃棄一覧取得エラー:', e);
+      setMonthlyWasteItems([]);
+    }
+  }, [selectedMonthKey]);
+
+  // レコードをカードへ集計
+  const aggregateWasteForCards = (cards: MonthlyCard[], records: WasteRecord[]): MonthlyCard[] => {
+    const next = cards.map(c => ({ ...c, total: 0, weeklyData: [0, 0, 0, 0], comparison: '—' }));
+
+    const cardIndexByKey = new Map(next.map((c, i) => [c.key, i] as const));
+
+    for (const r of records) {
+      const d = safeParseDate(r.created_at);
+      if (!d) continue;
+      const key = toYMKey(d);
+      const idx = cardIndexByKey.get(key);
+      if (idx === undefined) continue; // 表示対象外の月はスキップ
+
+      const day = d.getDate();
+      const weekIdx = Math.min(3, Math.floor((day - 1) / 7)); // 1-7,8-14,15-21,22-
+      next[idx].total += 1;
+      next[idx].weeklyData[weekIdx] += 1;
+    }
+
+    // 先月比を計算（左→右 = 古い→新しい）
+    for (let i = 1; i < next.length; i++) {
+      const prev = next[i - 1].total;
+      const curr = next[i].total;
+      if (prev > 0) {
+        const diff = ((curr - prev) / prev) * 100;
+        const sign = diff === 0 ? '' : diff > 0 ? '+' : '';
+        const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '';
+        next[i].comparison = `${sign}${Math.round(diff)}% ${arrow}`.trim();
+      } else if (prev === 0 && curr > 0) {
+        next[i].comparison = '+∞% ↑';
+      } else {
+        next[i].comparison = '—';
+      }
+    }
+
+    return next;
+  };
+
+  // 日付安全パース
+  const safeParseDate = (v: string): Date | null => {
+    if (!v) return null;
+    // ISO想定。もしスペース区切りの場合は 'YYYY-MM-DD HH:MM:SS' を ISO 風に補正
+    const normalized = v.includes('T') ? v : v.replace(' ', 'T');
+    const d = new Date(normalized);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  // 日時表示フォーマット: YYYY-MM-DD HH:mm
+  const formatDateTime = (d: Date): string => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+  };
+
+  // 配列比較（total / weeklyData / comparison のみ比較）
+  const hasCardsChanged = (a: MonthlyCard[], b: MonthlyCard[]) => {
+    if (a.length !== b.length) return true;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].total !== b[i].total) return true;
+      if (a[i].comparison !== b[i].comparison) return true;
+      for (let j = 0; j < 4; j++) {
+        if ((a[i].weeklyData[j] ?? 0) !== (b[i].weeklyData[j] ?? 0)) return true;
+      }
+    }
+    return false;
+  };
 
   
   // AI改善提案の状態
   const [aiSuggestion, setAiSuggestion] = useState<string>('');
   const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState<boolean>(false);
   
-  // 週次データ（過去4週間）
-  const weeklyData = {
-    labels: ['第1週', '第2週', '第3週', '第4週'],
-    datasets: [
-      {
-        data: monthlyData[0].weeklyData,
-        color: (opacity = 1) => `rgba(21, 100, 134, ${opacity})`,
-      }
-    ]
-  };
+  // 週次データ（グラフ用）は各カード内で生成
 
 
 
@@ -118,14 +228,17 @@ export default function FeedbackScreen() {
 
     setIsGeneratingSuggestion(true);
     try {
+      const currentCard = monthlyData[monthlyData.length - 1];
+      const monthlyTotal = currentCard?.total ?? 0;
+      const w = currentCard?.weeklyData ?? [0, 0, 0, 0];
       const prompt = `
 あなたは食品廃棄削減の専門家です。
 以下の廃棄データを分析して、具体的で実用的な改善提案を日本語で提供してください。
 
 廃棄データ:
-- 今月の廃棄量: ${monthlyTotal}回
+- 今月の廃棄回数: ${monthlyTotal}回
 - 先月比: -12% ↓
-- 週次データ: 第1週(1回), 第2週(1回), 第3週(2回), 第4週(1回)
+- 週次データ: 第1週(${w[0]}回), 第2週(${w[1]}回), 第3週(${w[2]}回), 第4週(${w[3]}回)
 - 廃棄物の内訳:
   - 鶏むね肉: 200g
   - ブロッコリー: 150g
@@ -164,24 +277,22 @@ export default function FeedbackScreen() {
     }
   };
 
-  /**
-   * コンポーネントマウント時の処理
-   */
+  // 月次データが準備できたら提案生成＆右端（今月）へスクロール
   useEffect(() => {
+    if (monthlyData.length === 0) return;
     generateAISuggestion();
-    
-    // 最初のスクロール位置を右端（最新の月）に設定
     setTimeout(() => {
       if (scrollViewRef.current) {
         scrollViewRef.current.scrollToEnd({ animated: false });
       }
     }, 100);
-  }, []);
+    setSelectedCardIndex(monthlyData.length - 1);
+  }, [monthlyData]);
 
   /**
    * 月次廃棄量カードコンポーネント
    */
-  const MonthlyWasteCard = ({ data }: { data: typeof monthlyData[0] }) => {
+  const MonthlyWasteCard = ({ data }: { data: MonthlyCard }) => {
     const weeklyDataForMonth = {
       labels: ['第1週', '第2週', '第3週', '第4週'],
       datasets: [
@@ -196,7 +307,7 @@ export default function FeedbackScreen() {
       <View style={styles.combinedCard}>
         <View style={styles.totalHeader}>
           <TrendingDown size={24} color="#EF4444" />
-          <Text style={styles.totalLabel}>{data.month}の廃棄回数</Text>
+          <Text style={styles.totalLabel}>{data.label}の廃棄回数</Text>
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalAmount}>{data.total}</Text>
@@ -236,6 +347,7 @@ export default function FeedbackScreen() {
           ref={scrollViewRef}
           style={styles.cardsScrollView}
           contentContainerStyle={styles.cardsScrollContainer}
+          onMomentumScrollEnd={onCardsMomentumEnd}
         >
           {monthlyData.map((data, index) => (
             <View key={index} style={styles.cardWrapper}>
@@ -244,9 +356,9 @@ export default function FeedbackScreen() {
           ))}
         </ScrollView>
 
-        {/* 今月の廃棄一覧 */}
+        {/* 選択月の廃棄一覧 */}
         <View style={styles.wasteListCard}>
-          <Text style={styles.wasteListTitle}>今月の廃棄一覧</Text>
+          <Text style={styles.wasteListTitle}>{selectedMonthLabel}の廃棄一覧</Text>
           
           <View style={styles.wasteList}>
             {monthlyWasteItems.map((item, index) => (
@@ -574,4 +686,3 @@ const markdownStyles = {
     fontFamily: 'monospace',
   },
 };
-
