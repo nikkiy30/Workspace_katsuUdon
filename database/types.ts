@@ -13,6 +13,7 @@ export interface WasteRecord {
   food_name: string;
   throw_amount: string;
   buy_amount: string;
+  created_at: string;
 }
 
 export interface FoodItem {

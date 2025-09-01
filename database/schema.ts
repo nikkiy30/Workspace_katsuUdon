@@ -12,6 +12,7 @@ export class DatabaseSchema {
 
   /**
    //* 全テーブルを作成
+   //! 現状プロフィールと廃棄のみ
    */
   public createTables(): void {
     try {
@@ -51,7 +52,8 @@ export class DatabaseSchema {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         food_name TEXT NOT NULL,
         throw_amount TEXT NOT NULL,
-        buy_amount TEXT NOT NULL
+        buy_amount TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
     this.db.execSync(sql);
