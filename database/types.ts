@@ -2,18 +2,24 @@
  //! プロフィールと廃棄データベース以外は一旦適当
  */
 
+// プロフィール
 export interface Profile {
   household_size: string;
   cooking_frequency: string;
   shopping_frequency: string;
 }
 
-export interface WasteRecord {
-  id: number;
+// 廃棄記録
+export interface WasteRecordInput {
   food_name: string;
   throw_amount: string;
   buy_amount: string;
   created_at: string;
+}
+
+// データベースから取得した時用にidありの廃棄記録のProtocol定義しておく
+export interface WasteRecord extends WasteRecordInput {
+  id: number;
 }
 
 export interface FoodItem {
