@@ -1,5 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { WasteDB } from '@/database/db/Wastedb';
+import { WasteRecordInput } from '@/database/types';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
@@ -53,8 +55,48 @@ export default function WasteScreen() {
   };
 
   const handleSave = () => {
-    // 保存処理の実装が入る想定。とりあえず画面遷移のみ実装。
-    router.push('/feedback');
+    // 入力値を取得
+    const foodName = inputFields.find(field => field.id === 'food-item')?.value || '';
+    const throwAmount = inputFields.find(field => field.id === 'disposal-amount')?.value || '';
+    const buyAmount = inputFields.find(field => field.id === 'purchase-amount')?.value || '';
+
+    // バリデーション
+    if (!foodName.trim()) {
+      Alert.alert('エラー', '廃棄する食品名を入力してください');
+      return;
+    }
+    if (!throwAmount.trim()) {
+      Alert.alert('エラー', '廃棄量を入力してください');
+      return;
+    }
+    if (!buyAmount.trim()) {
+      Alert.alert('エラー', '購入量・金額を入力してください');
+      return;
+    }
+
+    try {
+      const wasteDB = new WasteDB();
+      const wasteRecord: WasteRecordInput = {
+        food_name: foodName.trim(),
+        throw_amount: throwAmount.trim(),
+        buy_amount: buyAmount.trim(),
+        created_at: new Date().toISOString(),
+      };
+
+      //! ここで記録する
+      wasteDB.addWasteRecord(wasteRecord);
+      
+      // wasteDB.logLatestWasteRecord;
+      Alert.alert('保存完了', '廃棄記録を保存しました', [
+        {
+          text: 'OK',
+          onPress: () => router.back(),
+        },
+      ]);
+    } catch (error) {
+      console.error('廃棄記録保存エラー:', error);
+      Alert.alert('エラー', '保存に失敗しました');
+    }
   };
 
   return (
