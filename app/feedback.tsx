@@ -12,10 +12,33 @@ const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenAI({ apiKey: apiKey });
 
 export default function FeedbackScreen() {
+  // ScrollViewのref
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
+  // 月次データの配列
+  const monthlyData = [
+    {
+      month: '今月',
+      total: 5,
+      comparison: '-12% ↓',
+      weeklyData: [1, 1, 2, 1],
+    },
+    {
+      month: '先月',
+      total: 6,
+      comparison: '+8% ↑',
+      weeklyData: [2, 1, 2, 1],
+    },
+    {
+      month: '2ヶ月前',
+      total: 3,
+      comparison: '-5% ↓',
+      weeklyData: [1, 1, 1, 0],
+    },
+  ];
 
   // サンプルデータ
-  const monthlyTotal = 687; // グラム
+  const monthlyTotal = monthlyData[0].total; // グラム
   
   // 食材種類別廃棄量データ
   const meatWaste = 500; // 肉類廃棄量（グラム）
@@ -32,7 +55,7 @@ export default function FeedbackScreen() {
     labels: ['第1週', '第2週', '第3週', '第4週'],
     datasets: [
       {
-        data: [180, 150, 200, 157],
+        data: monthlyData[0].weeklyData,
         color: (opacity = 1) => `rgba(21, 100, 134, ${opacity})`,
       }
     ]
@@ -53,7 +76,7 @@ export default function FeedbackScreen() {
     backgroundGradientFrom: '#FFFFFF',
     backgroundGradientTo: '#FFFFFF',
     color: (opacity = 1) => `rgba(21, 100, 134, ${opacity})`,
-    strokeWidth: 2,
+    strokeWidth: 0,
     barPercentage: 0.7,
     decimalPlaces: 0,
     style: {
@@ -130,11 +153,60 @@ export default function FeedbackScreen() {
   };
 
   /**
-   * コンポーネントマウント時にAI改善提案を生成
+   * コンポーネントマウント時の処理
    */
   useEffect(() => {
     generateAISuggestion();
+    
+    // 最初のスクロール位置を右端（最新の月）に設定
+    setTimeout(() => {
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({ animated: false });
+      }
+    }, 100);
   }, []);
+
+  /**
+   * 月次廃棄量カードコンポーネント
+   */
+  const MonthlyWasteCard = ({ data }: { data: typeof monthlyData[0] }) => {
+    const weeklyDataForMonth = {
+      labels: ['第1週', '第2週', '第3週', '第4週'],
+      datasets: [
+        {
+          data: data.weeklyData,
+          color: (opacity = 1) => `rgba(21, 100, 134, ${opacity})`,
+        }
+      ]
+    };
+
+    return (
+      <View style={styles.combinedCard}>
+        <View style={styles.totalHeader}>
+          <TrendingDown size={24} color="#EF4444" />
+          <Text style={styles.totalLabel}>{data.month}の廃棄回数</Text>
+        </View>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalAmount}>{data.total}</Text>
+          <View style={styles.totalInfo}>
+            <Text style={styles.totalUnit}>回</Text>
+            <Text style={styles.totalComparison}>先月比 {data.comparison}</Text>
+          </View>
+        </View>
+        <BarChart
+          data={weeklyDataForMonth}
+          width={screenWidth - 60}
+          height={110}
+          chartConfig={chartConfig}
+          style={styles.chart}
+          showValuesOnTopOfBars={false}
+          fromZero={true}
+          yAxisLabel=""
+          yAxisSuffix=""
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -144,31 +216,21 @@ export default function FeedbackScreen() {
           <Text style={styles.headerSubtitle}>今月の廃棄データ</Text>
         </View>
 
-        {/* 今月の累計廃棄量 */}
-        <View style={styles.combinedCard}>
-          <View style={styles.totalHeader}>
-            <TrendingDown size={24} color="#EF4444" />
-            <Text style={styles.totalLabel}>今月の廃棄量</Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalAmount}>{monthlyTotal}</Text>
-            <View style={styles.totalInfo}>
-              <Text style={styles.totalUnit}>グラム</Text>
-              <Text style={styles.totalComparison}>先月比 -12% ↓</Text>
+        {/* 月次廃棄量カード（横スクロール可能） */}
+        <ScrollView 
+          horizontal 
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          ref={scrollViewRef}
+          style={styles.cardsScrollView}
+          contentContainerStyle={styles.cardsScrollContainer}
+        >
+          {monthlyData.map((data, index) => (
+            <View key={index} style={styles.cardWrapper}>
+              <MonthlyWasteCard data={data} />
             </View>
-          </View>
-          <BarChart
-            data={weeklyData}
-            width={screenWidth - 60}
-            height={160}
-            chartConfig={chartConfig}
-            style={styles.chart}
-            showValuesOnTopOfBars={true}
-            fromZero={true}
-            yAxisLabel=""
-            yAxisSuffix=""
-          />
-        </View>
+          ))}
+        </ScrollView>
 
         {/* 食材種類別グラフ */}
         <View style={styles.chartCard}>
@@ -417,6 +479,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#92400E',
     fontStyle: 'italic',
+  },
+  cardsScrollView: {
+    marginBottom: 20,
+  },
+  cardsScrollContainer: {
+    paddingHorizontal: 0,
+  },
+  cardWrapper: {
+    width: screenWidth - 40, // 左右のパディングを考慮
   },
 });
 
