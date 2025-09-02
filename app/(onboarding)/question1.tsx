@@ -1,8 +1,8 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -21,13 +21,17 @@ const householdOptions = [
 ];
 
 export default function Question1() {
-  const [selectedOption, setSelectedOption] = useState<string>('');
+  const { answers, updateAnswer } = useOnboarding();
+  const selectedOption = answers.householdSize;
 
   const handleNext = () => {
     if (selectedOption) {
-      // TODO: 回答を保存
       router.push('/(onboarding)/question2');
     }
+  };
+
+  const handleOptionSelect = (option: string) => {
+    updateAnswer('householdSize', option);
   };
 
   const handleBack = () => {
@@ -67,7 +71,7 @@ export default function Question1() {
                 styles.optionButton,
                 selectedOption === option && styles.optionButtonSelected
               ]}
-              onPress={() => setSelectedOption(option)}
+              onPress={() => handleOptionSelect(option)}
             >
               <ThemedText
                 style={[

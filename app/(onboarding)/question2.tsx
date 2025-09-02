@@ -1,8 +1,8 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -22,13 +22,17 @@ const cookingOptions = [
 ];
 
 export default function Question2() {
-  const [selectedOption, setSelectedOption] = useState<string>('');
+  const { answers, updateAnswer } = useOnboarding();
+  const selectedOption = answers.cookingFrequency;
 
   const handleNext = () => {
     if (selectedOption) {
-      // TODO: 回答を保存
       router.push('/(onboarding)/question3');
     }
+  };
+
+  const handleOptionSelect = (option: string) => {
+    updateAnswer('cookingFrequency', option);
   };
 
   const handleBack = () => {
@@ -68,7 +72,7 @@ export default function Question2() {
                 styles.optionButton,
                 selectedOption === option && styles.optionButtonSelected
               ]}
-              onPress={() => setSelectedOption(option)}
+              onPress={() => handleOptionSelect(option)}
             >
               <ThemedText
                 style={[
