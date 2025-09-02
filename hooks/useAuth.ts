@@ -1,69 +1,29 @@
-import { supabase } from '@/lib/supabase'
-import { Session, User } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
+// ローカルのみの認証フック（Supabase削除）
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<{ id: string } | null>({ id: 'local-user' }) // 固定ユーザー
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-    return { data, error }
-  }
-
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { data, error }
-  }
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
-  }
-
+  // 匿名ログイン（実際は何もしない）
   const signInAnonymously = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInAnonymously()
-      return { data, error }
-    } catch (error) {
-      return { data: null, error }
-    }
+    setLoading(true)
+    // ローカルユーザーを設定
+    setUser({ id: 'local-user' })
+    setLoading(false)
+    return { data: { user: { id: 'local-user' } }, error: null }
   }
 
   return {
-    session,
+    session: user ? { user } : null,
     user,
     loading,
-    signUp,
-    signIn,
-    signOut,
+    signUp: () => Promise.resolve({ data: null, error: null }),
+    signIn: () => Promise.resolve({ data: null, error: null }),
+    signOut: () => {
+      setUser(null)
+      return Promise.resolve({ error: null })
+    },
     signInAnonymously,
   }
 }

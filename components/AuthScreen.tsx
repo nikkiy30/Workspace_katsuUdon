@@ -1,215 +1,81 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native'
-// 認証画面
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+
 export function AuthScreen() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp, signInAnonymously } = useAuth()
+  const { signInAnonymously } = useAuth()
   const router = useRouter()
-  
-  const handleAuth = async () => {
-    if (!email || !password) {
-      Alert.alert('エラー', 'メールアドレスとパスワードを入力してください')
-      return
-    }
 
+  const handleStart = async () => {
     setLoading(true)
     try {
-      const res = isSignUp
-        ? await signUp(email, password)
-        : await signIn(email, password)
-
-      const error = (res as any)?.error
-      if (error) {
-        const msg = (error as { message?: string }).message ?? '不明なエラー'
-        Alert.alert('エラー', msg)
-        return
-      }
-      if (isSignUp) {
-        Alert.alert('成功', 'アカウントが作成されました')
-        // 次はサインインさせる（awaitしてからルーティング）
-        const signInRes = await signIn(email, password)
-        const signInError = (signInRes as any)?.error
-        if (signInError) {
-          const msg = (signInError as { message?: string }).message ?? 'サインインに失敗しました'
-          Alert.alert('エラー', msg)
-          return
-        }
-
-        // 正しいパスでオンボーディングへ遷移（expo-router の app グループ名を使用）
-        router.push('/(onboarding)')
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        Alert.alert('エラー', err.message)
-      } else {
-        Alert.alert('エラー', '予期しないエラーが発生しました')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleAnonymousAuth = async () => {
-    setLoading(true)
-    try {
-      const { error } = await signInAnonymously()
-
-      if (error) {
-        const msg = (error as { message?: string })?.message ?? '匿名サインインに失敗しました'
-        Alert.alert('エラー', msg)
-        return
-      }
-
-      // 成功したらウェルカムへ遷移
+      await signInAnonymously()
       router.push('/(onboarding)/welcome')
     } catch (err) {
-      Alert.alert('エラー', '予期しないエラーが発生しました')
+      Alert.alert('エラー', '開始に失敗しました')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>食品ロス削減アプリ</Text>
-        <Text style={styles.subtitle}>KatsuUdon</Text>
+        <Text style={styles.subtitle}>katsuUdon</Text>
         
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="メールアドレス"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="パスワード"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleAuth}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? '処理中...' : isSignUp ? 'アカウント作成' : 'ログイン'}
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.anonymousButton, loading && styles.buttonDisabled]}
-            onPress={handleAnonymousAuth}
-            disabled={loading}
-          >
-            <Text style={styles.anonymousButtonText}>
-              ゲストとして利用する
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.switchButton}
-            onPress={() => setIsSignUp(!isSignUp)}
-          >
-            <Text style={styles.switchText}>
-              {isSignUp ? 'ログインはこちら' : 'アカウント作成はこちら'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[styles.startButton, loading && styles.buttonDisabled]}
+          onPress={handleStart}
+          disabled={loading}
+        >
+          <Text style={styles.startButtonText}>
+            {loading ? '開始中...' : 'アプリを始める'}
+          </Text>
+        </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 32,
+    alignItems: 'center',
+    paddingHorizontal: 40,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#2d3748',
+    color: '#156486',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
+    color: '#666',
+    marginBottom: 60,
+  },
+  startButton: {
+    backgroundColor: '#156486',
+    paddingHorizontal: 40,
+    paddingVertical: 16,
+    borderRadius: 8,
+    minWidth: 200,
+  },
+  startButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
     textAlign: 'center',
-    color: '#4a5568',
-    marginBottom: 48,
-  },
-  form: {
-    gap: 16,
-  },
-  input: {
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: '#4299e1',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  anonymousButton: {
-    backgroundColor: '#68d391',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#a0aec0',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  anonymousButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  switchButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  switchText: {
-    color: '#4299e1',
-    fontSize: 14,
+    opacity: 0.6,
   },
 })
