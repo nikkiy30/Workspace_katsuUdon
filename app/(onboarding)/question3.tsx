@@ -27,7 +27,7 @@ export default function Question3() {
   const handleNext = () => {
     if (selectedOption) {
       // TODO: 回答を保存してプロフィールに反映
-      router.push('/(onboarding)/complete');
+      router.push('/(tabs)');
     }
   };
 
