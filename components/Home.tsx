@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { Colors } from '@/constants/Colors';
 import { router } from "expo-router";
 import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -45,7 +46,7 @@ export const Screen = () => {
           onPress={() => router.push('/wasteInput')}
         >
           <View style={styles.wasteInputButton}>
-            <Trash2 color="#156486" size={24} />
+            <Trash2 color={Colors.light.primary} size={24} />
             <ThemedText>廃棄入力</ThemedText>
           </View>
         </TouchableOpacity>
@@ -65,7 +66,7 @@ export const Screen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fafeff",
+    backgroundColor: "#FFFFFF",
   },
   headerButton: {
     position: "absolute",
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     width: 41,
     height: 41,
     borderRadius: 20.5,
-    backgroundColor: "#156486",
+    backgroundColor: Colors.light.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   badge: {
     width: 198,
     height: 48,
-    backgroundColor: "#156486",
+    backgroundColor: Colors.light.primary,
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
@@ -99,17 +100,17 @@ const styles = StyleSheet.create({
   cardLarge: {
     height: 216,
     borderRadius: 10,
-    borderWidth: 3,
-    borderColor: "#156486",
-    backgroundColor: "#d9d9d9",
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.background,
     alignItems: "center",
     justifyContent: "center",
   },
   cardMedium: {
     height: 101,
     borderRadius: 10,
-    borderWidth: 3,
-    borderColor: "#156486",
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
     backgroundColor: "#fafeff",
     alignItems: "center",
     justifyContent: "center",
@@ -128,8 +129,8 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 100,
     borderRadius: 10,
-    borderWidth: 3,
-    borderColor: "#156486",
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
     backgroundColor: "#fafeff",
     alignItems: "center",
     paddingHorizontal: 8,
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   actionTitle: {
-    color: "#156486",
+    color: Colors.light.primary,
     fontWeight: "600",
   },
   bottomNav: {
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 79,
-    backgroundColor: "#156486",
+    backgroundColor: Colors.light.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",

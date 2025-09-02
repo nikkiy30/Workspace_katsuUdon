@@ -19,6 +19,7 @@ import Modal from 'react-native-modal';
 import { X, Save, Plus, Trash2 } from 'lucide-react-native';
 import { CookingPlan } from '@/types/calendar';
 import { saveCookingPlan } from '@/services/storageService';
+import { Colors } from '@/constants/Colors';
 
 
 // モーダルのProps型定義
@@ -405,7 +406,7 @@ const AddPlanModal: React.FC<AddPlanModalProps> = ({
                 </View>
               ))}
               <TouchableOpacity style={styles.addIngredientButton} onPress={addIngredient}>
-                <Plus size={20} color="#156486" />
+                <Plus size={20} color={Colors.light.primary} />
                 <Text style={styles.addIngredientText}>材料を追加</Text>
               </TouchableOpacity>
             </View>
@@ -518,7 +519,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   categoryButtonSelected: {
-    borderColor: '#156486',
+    borderColor: Colors.light.primary,
     backgroundColor: '#e8f5f8',
   },
   categoryIcon: {
@@ -530,7 +531,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   categoryTextSelected: {
-    color: '#156486',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   difficultyContainer: {
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   difficultyButtonSelected: {
-    borderColor: '#156486',
+    borderColor: Colors.light.primary,
     backgroundColor: '#e8f5f8',
   },
   difficultyText: {
@@ -555,7 +556,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   difficultyTextSelected: {
-    color: '#156486',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   ingredientRow: {
@@ -596,7 +597,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,

@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
 import { useState } from 'react';
+import { Colors } from '@/constants/Colors';
 import {
   Alert,
   SafeAreaView,
@@ -109,7 +110,7 @@ export default function WasteScreen() {
             {/* Header */}
             <ThemedView style={styles.header}>
               <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <ArrowLeft size={24} color="#156486" />
+                <ArrowLeft size={24} color={Colors.light.primary} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <ThemedText style={styles.saveButtonText}>保存する</ThemedText>
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontWeight: '600',
-    color: '#156486',
+    color: Colors.light.primary,
     fontSize: 20,
   },
   headerLines: {
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
   headerLine: {
     width: 19,
     height: 31,
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
     marginBottom: 27,
   },
   inputContainer: {
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   inputLabel: {
-    color: '#156486',
+    color: Colors.light.primary,
     fontSize: 15,
     marginBottom: 8,
     fontWeight: '400',
@@ -214,10 +215,10 @@ const styles = StyleSheet.create({
   textInput: {
     width: '100%',
     height: 56,
-    backgroundColor: '#1564861a',
+    backgroundColor: `${Colors.light.primary}1a`,
     borderRadius: 5,
     borderWidth: 3,
-    borderColor: '#156486',
+    borderColor: Colors.light.primary,
     paddingHorizontal: 12,
     fontSize: 15,
     color: '#101420',
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   notesLabel: {
-    color: '#15648659',
+    color: `${Colors.light.primary}59`,
     fontSize: 15,
     marginBottom: 8,
     marginLeft: 12,
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafeff',
     borderRadius: 5,
     borderWidth: 3,
-    borderColor: '#156486',
+    borderColor: Colors.light.primary,
     padding: 12,
     fontSize: 15,
     color: '#101420',

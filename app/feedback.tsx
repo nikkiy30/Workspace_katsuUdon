@@ -6,6 +6,7 @@ import { WasteDB } from '@/database/db/Wastedb';
 import type { WasteRecord } from '@/database/types';
 import { GoogleGenAI } from '@google/genai';
 import Markdown from 'react-native-markdown-display';
+import { Colors } from '@/constants/Colors';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
   },
   totalComparison: {
     fontSize: 12,
-    color: '#156486',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   chartCard: {
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
   },
   categoryBar: {
     height: '100%',
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
     borderRadius: 4,
   },
   categoryAmount: {
