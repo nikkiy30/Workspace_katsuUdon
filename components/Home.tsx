@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router } from "expo-router";
-import { Bell, ChevronRight, Home as HomeIcon, MoreHorizontal } from "lucide-react-native";
+import { Home as HomeIcon, MoreHorizontal } from "lucide-react-native";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
@@ -14,9 +14,6 @@ const navigationItems = [
 export const Screen = () => {
   return (
     <ThemedView style={styles.container}>
-      <TouchableOpacity style={styles.headerButton} activeOpacity={0.8}>
-        <Bell color="#fff" size={20} />
-      </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.badge}>
