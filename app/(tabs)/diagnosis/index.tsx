@@ -1,24 +1,22 @@
-import { useAuth } from '@/hooks/useAuth'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as Localization from 'expo-localization'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
-  Alert,
-  Keyboard,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Keyboard,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native'
 
 export default function DiagnosisScreen() {
   const router = useRouter()
-  const { user } = useAuth()
   const [foodName, setFoodName] = useState('')
   const [amount, setAmount] = useState('')
   const [expiryDate, setExpiryDate] = useState(new Date())

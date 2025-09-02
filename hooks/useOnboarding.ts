@@ -1,26 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useEffect, useState } from 'react'
 
-const ONBOARDING_KEY_PREFIX = 'onboarding_completed_'
+const ONBOARDING_KEY = 'onboarding_completed'
 
-export function useOnboarding(userId?: string) {
+export function useOnboarding(userId: string = 'local-user') {
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (userId) {
-      loadOnboardingStatus(userId)
-    } else {
-      // ユーザーIDがない場合は未完了状態
-      setOnboardingCompleted(false)
-      setLoading(false)
-    }
-  }, [userId])
+    loadOnboardingStatus()
+  }, [])
 
-  const loadOnboardingStatus = async (userId: string) => {
+  const loadOnboardingStatus = async () => {
     try {
-      const key = `${ONBOARDING_KEY_PREFIX}${userId}`
-      const status = await AsyncStorage.getItem(key)
+      const status = await AsyncStorage.getItem(ONBOARDING_KEY)
       setOnboardingCompleted(status === 'true')
     } catch (error) {
       console.error('Error loading onboarding status:', error)
@@ -31,11 +24,8 @@ export function useOnboarding(userId?: string) {
   }
 
   const completeOnboarding = async () => {
-    if (!userId) return
-    
     try {
-      const key = `${ONBOARDING_KEY_PREFIX}${userId}`
-      await AsyncStorage.setItem(key, 'true')
+      await AsyncStorage.setItem(ONBOARDING_KEY, 'true')
       setOnboardingCompleted(true)
     } catch (error) {
       console.error('Error saving onboarding status:', error)
@@ -43,11 +33,8 @@ export function useOnboarding(userId?: string) {
   }
 
   const resetOnboarding = async () => {
-    if (!userId) return
-    
     try {
-      const key = `${ONBOARDING_KEY_PREFIX}${userId}`
-      await AsyncStorage.removeItem(key)
+      await AsyncStorage.removeItem(ONBOARDING_KEY)
       setOnboardingCompleted(false)
     } catch (error) {
       console.error('Error resetting onboarding status:', error)

@@ -1,4 +1,3 @@
-import { useAuth } from '@/hooks/useAuth'
 import { useOnboarding } from '@/hooks/useOnboarding'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
@@ -30,8 +29,7 @@ const SHOPPING_OPTIONS = [
 
 export default function Question3Screen() {
   const router = useRouter()
-  const { user } = useAuth()
-  const { completeOnboarding } = useOnboarding(user?.id)
+  const { completeOnboarding } = useOnboarding()
   const [selectedHousehold, setSelectedHousehold] = useState<number | null>(null)
   const [selectedFrequency, setSelectedFrequency] = useState<string | null>(null)
 
