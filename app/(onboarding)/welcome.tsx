@@ -1,91 +1,231 @@
-import { useRouter } from 'expo-router'
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { router } from 'expo-router';
+import { ArrowRight, ChefHat } from 'lucide-react-native';
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View,
-} from 'react-native'
+  View
+} from 'react-native';
 
 export default function WelcomeScreen() {
-  const router = useRouter()
-
   const goToQ1 = () => {
-    router.push('/question1')
+    router.push('/(onboarding)/question1')
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>ようこそ！</Text>
-        <Text style={styles.subtitle}>KatsuUdonへ</Text>
+    <ThemedView style={styles.container}>
+      {/* <SafeAreaView style={styles.safeArea}> */}
+        {/* Background decoration */}
+        {/* <View style={styles.backgroundCircle1} />
+        <View style={styles.backgroundCircle2} /> */}
         
-        <Text style={styles.description}>
-          食品ロス削減のために、{'\n'}
-          あなたの食生活について{'\n'}
-          いくつか質問させてください。
-        </Text>
-        
-        <Text style={styles.note}>
-          これらの情報は、あなたに最適な{'\n'}
-          食材の提案や廃棄予防アドバイスを{'\n'}
-          提供するために使用されます。
-        </Text>
-        
-        <TouchableOpacity style={styles.button} onPress={goToQ1}>
-          <Text style={styles.buttonText}>はじめる</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        <View style={styles.content}>
+          {/* Logo/Icon area */}
+          <View style={styles.iconContainer}>
+            <View style={styles.iconBackground}>
+              <ChefHat size={48} color="#156486" />
+            </View>
+          </View>
+
+          {/* Welcome Text */}
+          <View style={styles.textContainer}>
+            <ThemedText style={styles.title}>
+              Chopへようこそ！
+            </ThemedText>
+            <ThemedText style={styles.subtitle}>
+              {/* Chopへ */}
+            </ThemedText>
+
+            {/* Description */}
+            <ThemedText style={styles.description}>
+              あなたの食生活をもっと楽しく{'\n'}
+              もっと廃棄を少なく{'\n'}
+              簡単な質問からはじめましょう
+            </ThemedText>
+          </View>
+
+          {/* Features */}
+          <View style={styles.featuresContainer}>
+            <View style={styles.featureItem}>
+              <View style={styles.featureDot} />
+              <ThemedText style={styles.featureText}>
+                パーソナライズされた提案
+              </ThemedText>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={styles.featureDot} />
+              <ThemedText style={styles.featureText}>
+                AI による適切な購入診断
+              </ThemedText>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={styles.featureDot} />
+              <ThemedText style={styles.featureText}>
+                シンプルなデザインで使いやすい
+              </ThemedText>
+            </View>
+          </View>
+        </View>
+
+        {/* Start Button */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={goToQ1}>
+            <ThemedText style={styles.buttonText}>はじめる</ThemedText>
+            <ArrowRight size={20} color="#fafeff" />
+          </TouchableOpacity>
+        </View>
+      {/* </SafeAreaView> */}
+    </ThemedView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fafeff',
+    margin:10,
+  },
+  safeArea: {
+    flex: 1,
+    // position: 'relative',
+  },
+  backgroundCircle1: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: '#156486',
+    opacity: 0.1,
+  },
+  backgroundCircle2: {
+    position: 'absolute',
+    bottom: -30,
+    left: -30,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#156486',
+    opacity: 0.05,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
     paddingHorizontal: 32,
     alignItems: 'center',
+    paddingTop: 80,
+    paddingBottom: 40,
+  },
+  iconContainer: {
+    // position: 'relative',
+    marginBottom: 60,
+  },
+  iconBackground: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#f0f8ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#156486',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  sparkleContainer: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 4,
+    elevation: 4,
+    shadowColor: '#FFD700',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginBottom: 60,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 8,
+    fontSize: 30,
+    padding: 12,
+    fontWeight: '700',
+    color: '#156486',
+    textAlign: 'center',
+    // borderWidth:1,
   },
   subtitle: {
-    fontSize: 24,
-    color: '#4a5568',
-    marginBottom: 48,
+    fontSize: 20,
+    fontWeight: '500',
+    color: '#666666',
+    marginBottom: 32,
+    textAlign: 'center',
   },
   description: {
-    fontSize: 18,
-    color: '#4a5568',
+    fontSize: 16,
+    color: '#888888',
     textAlign: 'center',
-    lineHeight: 28,
-    marginBottom: 32,
+    lineHeight: 24,
+    marginBottom: 0,
+    maxWidth: 280,
   },
-  note: {
+  featuresContainer: {
+    alignItems: 'flex-start',
+    gap: 16,
+    marginBottom: 40,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  featureDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#156486',
+  },
+  featureText: {
     fontSize: 14,
-    color: '#718096',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 48,
+    color: '#666666',
+    fontWeight: '500',
+  },
+  buttonContainer: {
+    paddingHorizontal: 32,
+    paddingBottom: 40,
   },
   button: {
-    backgroundColor: '#4299e1',
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 12,
+    backgroundColor: '#156486',
+    flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 200,
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 48,
+    borderRadius: 16,
+    gap: 8,
+    elevation: 8,
+    shadowColor: '#156486',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   buttonText: {
-    color: 'white',
+    color: '#fafeff',
     fontSize: 18,
     fontWeight: '600',
   },
-})
+});

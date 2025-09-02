@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -98,7 +98,7 @@ export default function Question3() {
                 !selectedOption && styles.nextButtonTextDisabled
               ]}
             >
-              完了
+              アプリを始める
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#e0e0e0',
     borderRadius: 2,
-    marginBottom: 40,
+    marginBottom: 30,
   },
   progressBar: {
     height: '100%',
@@ -143,31 +143,33 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   questionTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
     color: '#156486',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   optionsContainer: {
     flex: 1,
     paddingTop: 20,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
   },
   optionButton: {
     backgroundColor: '#f8f9fa',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: '#156486',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
     alignItems: 'center',
   },
   optionButtonSelected: {
     backgroundColor: '#156486',
   },
   optionText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
     color: '#156486',
   },
@@ -176,18 +178,19 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingBottom: 20,
+    paddingHorizontal: 20,
   },
   nextButton: {
     backgroundColor: '#156486',
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 24,
+    paddingVertical: 14,
     alignItems: 'center',
   },
   nextButtonDisabled: {
     backgroundColor: '#cccccc',
   },
   nextButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#fafeff',
   },
