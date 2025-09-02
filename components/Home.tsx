@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router } from "expo-router";
-import { Home as HomeIcon, MoreHorizontal } from "lucide-react-native";
+import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
@@ -44,7 +44,10 @@ export const Screen = () => {
           activeOpacity={0.8}
           onPress={() => router.push('/wasteInput')}
         >
-          <ThemedText>廃棄入力</ThemedText>
+          <View style={styles.wasteInputButton}>
+            <Trash2 color="#156486" size={24} />
+            <ThemedText>廃棄入力</ThemedText>
+          </View>
         </TouchableOpacity>
       </ScrollView>
 
@@ -110,6 +113,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fafeff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  wasteInputButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   actionsRow: {
     flexDirection: "row",
