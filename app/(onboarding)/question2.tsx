@@ -1,196 +1,197 @@
-import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { router } from 'expo-router';
+import { ArrowLeft } from 'lucide-react-native';
+import React, { useState } from 'react';
 import {
-  ScrollView,
+  SafeAreaView,
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View
-} from 'react-native'
+  View,
+} from 'react-native';
 
-const DIETARY_OPTIONS = [
-  'なし',
-  'ベジタリアン',
-  'ヴィーガン',
-  'グルテンフリー',
-  'アレルギー対応',
-  'ハラル',
-  'コーシャ',
-  'その他',
-]
+const cookingOptions = [
+  'ほとんどしない',
+  '週1回',
+  '週2回',
+  '週3回',
+  '週4回',
+  '週5回',
+  '週6回',
+  '毎日',
+];
 
-export default function Question2Screen() {
-  const router = useRouter()
-  const [selectedRestrictions, setSelectedRestrictions] = useState<string[]>([])
-
-  const toggleRestriction = (restriction: string) => {
-    if (restriction === 'なし') {
-      setSelectedRestrictions(['なし'])
-    } else {
-      setSelectedRestrictions(prev => {
-        const withoutNone = prev.filter(r => r !== 'なし')
-        return withoutNone.includes(restriction) 
-          ? withoutNone.filter(r => r !== restriction)
-          : [...withoutNone, restriction]
-      })
-    }
-  }
+export default function Question2() {
+  const [selectedOption, setSelectedOption] = useState<string>('');
 
   const handleNext = () => {
-
-    // 選択した内容は後でプロフィール機能実装時に保存予定
-    console.log('Selected dietary restrictions:', selectedRestrictions)
-
-    router.push('/question3')
-  }
+    if (selectedOption) {
+      // TODO: 回答を保存
+      router.push('/(onboarding)/question3');
+    }
+  };
 
   const handleBack = () => {
-    router.back()
-  }
+    router.back();
+  };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Text style={styles.backButtonText}>← 戻る</Text>
-        </TouchableOpacity>
-        <Text style={styles.progress}>2/3</Text>
-      </View>
+    <ThemedView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={handleBack}
+          >
+            <ArrowLeft size={24} color="#156486" />
+          </TouchableOpacity>
+          <ThemedText style={styles.progressText}>2/3</ThemedText>
+        </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>質問2</Text>
-        <Text style={styles.question}>
-          食事制限やアレルギーは{'\n'}
-          ありますか？
-        </Text>
-        <Text style={styles.subtitle}>
-          （複数選択可、該当しない場合は「なし」を選択）
-        </Text>
+        {/* Progress Bar */}
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressBar, { width: '66%' }]} />
+        </View>
 
+        {/* Question */}
+        <ThemedText style={styles.questionTitle}>
+          Q2. 自炊の頻度を教えて下さい
+        </ThemedText>
+
+        {/* Options */}
         <View style={styles.optionsContainer}>
-          {DIETARY_OPTIONS.map((restriction) => (
+          {cookingOptions.map((option, index) => (
             <TouchableOpacity
-              key={restriction}
+              key={index}
               style={[
-                styles.option,
-                selectedRestrictions.includes(restriction) && styles.optionSelected
+                styles.optionButton,
+                selectedOption === option && styles.optionButtonSelected
               ]}
-              onPress={() => toggleRestriction(restriction)}
+              onPress={() => setSelectedOption(option)}
             >
-              <Text style={[
-                styles.optionText,
-                selectedRestrictions.includes(restriction) && styles.optionTextSelected
-              ]}>
-                {restriction}
-              </Text>
+              <ThemedText
+                style={[
+                  styles.optionText,
+                  selectedOption === option && styles.optionTextSelected
+                ]}
+              >
+                {option}
+              </ThemedText>
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[
-            styles.nextButton,
-            selectedRestrictions.length === 0 && styles.nextButtonDisabled
-          ]} 
-          onPress={handleNext}
-          disabled={selectedRestrictions.length === 0}
-        >
-          <Text style={styles.nextButtonText}>次へ</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
+        {/* Next Button */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[
+              styles.nextButton,
+              !selectedOption && styles.nextButtonDisabled
+            ]}
+            onPress={handleNext}
+            disabled={!selectedOption}
+          >
+            <ThemedText
+              style={[
+                styles.nextButtonText,
+                !selectedOption && styles.nextButtonTextDisabled
+              ]}
+            >
+              次へ
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </ThemedView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fafeff',
+  },
+  safeArea: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   backButton: {
     padding: 8,
   },
-  backButtonText: {
-    color: '#4299e1',
+  progressText: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#156486',
   },
-  progress: {
-    color: '#718096',
-    fontSize: 16,
+  progressContainer: {
+    height: 4,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 2,
+    marginBottom: 40,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 32,
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#156486',
+    borderRadius: 2,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 16,
-  },
-  question: {
-    fontSize: 20,
-    color: '#4a5568',
-    lineHeight: 28,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#718096',
-    marginBottom: 32,
+  questionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#156486',
+    textAlign: 'center',
+    marginBottom: 40,
   },
   optionsContainer: {
-    gap: 12,
-    paddingBottom: 20,
-  },
-  option: {
-    backgroundColor: 'white',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-  },
-  optionSelected: {
-    borderColor: '#4299e1',
-    backgroundColor: '#ebf8ff',
-  },
-  optionText: {
-    fontSize: 16,
-    color: '#4a5568',
-    textAlign: 'center',
-  },
-  optionTextSelected: {
-    color: '#2b6cb0',
-    fontWeight: '600',
-  },
-  footer: {
-    paddingHorizontal: 32,
-    paddingBottom: 40,
+    flex: 1,
     paddingTop: 20,
   },
-  nextButton: {
-    backgroundColor: '#4299e1',
-    paddingVertical: 16,
+  optionButton: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: '#156486',
     borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  optionButtonSelected: {
+    backgroundColor: '#156486',
+  },
+  optionText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#156486',
+  },
+  optionTextSelected: {
+    color: '#fafeff',
+  },
+  buttonContainer: {
+    paddingBottom: 20,
+  },
+  nextButton: {
+    backgroundColor: '#156486',
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   nextButtonDisabled: {
-    backgroundColor: '#a0aec0',
+    backgroundColor: '#cccccc',
   },
   nextButtonText: {
-    color: 'white',
     fontSize: 18,
     fontWeight: '600',
+    color: '#fafeff',
   },
-})
+  nextButtonTextDisabled: {
+    color: '#666666',
+  },
+});
