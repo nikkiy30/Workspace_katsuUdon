@@ -1,3 +1,5 @@
+import { UserDB } from '@/database/db/Userdb'
+import { WasteDB } from '@/database/db/Wastedb'
 import { GoogleGenAI } from '@google/genai'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -27,6 +29,27 @@ interface ChatMessage {
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || ''
 const genAI = new GoogleGenAI({ apiKey: apiKey })
 
+// データベースからデータを取得する関数
+const getDatabaseData = () => {
+  const wasteDB = new WasteDB()
+  const userDB = new UserDB()
+  
+  // プロフィール情報を取得
+  const profile = userDB.getProfile()
+  
+  // 廃棄記録を取得（全履歴）
+  const wasteRecords = wasteDB.getWasteRecords()
+  
+  return {
+    profile: {
+      household_size: profile?.household_size || '記録なし',
+      cooking_frequency: profile?.cooking_frequency || '記録なし',
+      shopping_frequency: profile?.shopping_frequency || '記録なし'
+    },
+    wasteRecords
+  }
+}
+
 export default function AiChatScreen() {
   const router = useRouter()
   const params = useLocalSearchParams()
@@ -53,14 +76,14 @@ export default function AiChatScreen() {
     }
   }, [])
   
-  // 前の画面から受け取った診断データ
   const diagnosisData = {
     foodName: params.foodName as string || '',
     amount: params.amount as string || '',
     expiryDate: params.expiryDate as string || '',
     notes: params.notes as string || ''
   }
-  
+  // messageはユーザーの初手メッセージ以外を記録（チャットののUIレンダリングに使用するためのやつ)
+  // 全メッセージを記録してAIのプロンプトに使うので格納
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([])
@@ -72,40 +95,52 @@ export default function AiChatScreen() {
     }
   }, [])
 
-  // AI分析を実行する関数
   const performAIAnalysis = async () => {
     setIsAnalyzing(true)
     try {
+      // データベースからデータを取得
+      const dbData = getDatabaseData()
+      
       const prompt = `
-あなたはAIアシスタントです。
-日本語で簡潔に回答してください。
-専門用語を使う場合は分かりやすく説明してください。
+あなたは食品ロス防止アドバイザーです。
+次の条件に基づき、購入前診断を２段階で出力してください。
 
-前提条件:
-{
-    "foodName": "${diagnosisData.foodName}",
-    "amount": "${diagnosisData.amount}",
-    "expiryDate": "${diagnosisData.expiryDate}",
-    "notes": "${diagnosisData.notes}",
-    "summary": {
-        "waste_count_last_month": 2,
-        "waste_frequency_category": "高頻度",
-        "average_waste_rate": 0.35,
-        "max_waste_rate": 0.8,
-        "days_since_last_discard": 12,
-        "is_improving_trend": false,
-        "most_common_purchase_unit": "個",
-        "user_profile_summary": {
-            "cooking_frequency": "週1-2回",
-            "family_size": "一人暮らし"
-        }
-    }
-}
-これを元に、以下の出力形式で回答してください
-- タイトル（判断を短く）
-- 詳細（判断の説明を長過ぎない程度に説明）
-- 根拠（「前提条件」の変数名は表示しないで説明してください）
-- アドバイス（仮に分析結果から使い切れる可能性が低くて廃棄してしまいそうだけどこのようにすれば、このような料理を作ってみませんか？とかその食材なら長持ちする保存方法とか結果を提示するだけじゃなくて改善に迎えるような役に立つアドバイスとかあった良いかも）
+【入力情報】
+食材名：${diagnosisData.foodName}
+購入予定量：${diagnosisData.amount}
+期限：${diagnosisData.expiryDate}
+備考：${diagnosisData.notes || 'なし'}
+
+【プロフィール情報】
+世帯人数：${dbData.profile.household_size}
+自炊頻度：${dbData.profile.cooking_frequency}
+買い物の頻度：${dbData.profile.shopping_frequency}
+
+【廃棄経歴】
+過去の廃棄記録全履歴：
+${dbData.wasteRecords.length > 0 ? 
+  dbData.wasteRecords.map(record => 
+    `食材名:${record.food_name} 購入量:${record.buy_amount} 廃棄量:${record.throw_amount} 日付:${record.created_at.split('T')[0]}`
+  ).join('\n') : 
+  '廃棄記録がありません'}
+
+【その他】
+現在の季節から、食品の劣化の可能性が検討される場合は出力に活用してください。
+
+以下の形式で出力してください：
+
+◆ 結論
+購入推奨度：（「購入してもいい」「条件付きでOK」「おすすめしない」の3段階）
+理由：（上記のプロフィール情報と廃棄経歴に基づく）
+
+◆ 詳細なアドバイス
+気をつけるポイント：（量・期限・調理計画に基づく）
+保存方法：（安全が担保できない場合は「安全な保存情報が確認できません。公式情報を参照してください。」と明示）
+代替案：（購入の代替案）
+
+【安全ルール】
+保存方法について、不確実な情報は推測しない。
+安全が担保できない場合は、国の食品安全基準や公式サイトの参照を促す。
 `
 
       const response = await genAI.models.generateContent({
@@ -116,7 +151,7 @@ export default function AiChatScreen() {
       const analysisResult = response.text ?? 'エラーが発生しました'
       setAiAnalysis(analysisResult)
       
-      // 初期メッセージとしてAI分析結果を追加
+      // 初期メッセージのやつ
       const initialMessage: ChatMessage = {
         id: '1',
         text: analysisResult,
@@ -124,7 +159,7 @@ export default function AiChatScreen() {
         timestamp: new Date(),
       }
       
-      // 両方の配列に追加
+      // 全メッセージとその場のメッセージに追加
       setMessages([initialMessage])
       setAllMessages([initialMessage])
     } catch (error) {
@@ -159,24 +194,41 @@ export default function AiChatScreen() {
     setLoading(true)
 
     try {
+      // データベースからデータを取得
+      const dbData = getDatabaseData()
+      
       // Gemini APIで追加質問に答える
       const followUpPrompt = `
-前回の分析対象:
-- 食材: ${diagnosisData.foodName}
-- 内容量: ${diagnosisData.amount}
-- 賞味期限: ${diagnosisData.expiryDate}
-- 備考: ${diagnosisData.notes}
+あなたは食品ロス防止アドバイザーです。
 
-会話履歴（文脈理解のため）:
+前回の診断対象:
+食材名：${diagnosisData.foodName}
+購入予定量：${diagnosisData.amount}
+期限：${diagnosisData.expiryDate}
+備考：${diagnosisData.notes || 'なし'}
+
+【プロフィール情報】
+世帯人数：${dbData.profile.household_size}
+自炊頻度：${dbData.profile.cooking_frequency}
+買い物の頻度：${dbData.profile.shopping_frequency}
+
+【廃棄経歴】
+過去の廃棄記録全履歴：
+${dbData.wasteRecords.length > 0 ? 
+  dbData.wasteRecords.map(record => 
+    `食材名:${record.food_name} 購入量:${record.buy_amount} 廃棄量:${record.throw_amount} 日付:${record.created_at.split('T')[0]}`
+  ).join('\n') : 
+  '廃棄記録がありません'}
+
+会話履歴：
 ${allMessages.map(msg => 
-  `${msg.isUser ? 'ユーザー' : 'AI'}: ${msg.text}`
+  `${msg.isUser ? 'ユーザー' : 'アドバイザー'}: ${msg.text}`
 ).join('\n')}
 
-ユーザーの追加質問: ${userMessage.text}
+ユーザーの追加質問：${userMessage.text}
 
-上記の食材と会話履歴の文脈を踏まえて、ユーザーの質問に日本語で簡潔に答えてください。
-前の会話の内容を理解した上で、一貫性のある回答を提供してください。
-実用的なアドバイスを提供してください。
+上記の情報と会話履歴を踏まえて、食品ロス防止の観点から実践的なアドバイスをしてください。
+保存方法について不確実な場合は、公式情報の参照を促してください。
 `
 
       const response = await genAI.models.generateContent({
@@ -212,7 +264,7 @@ ${allMessages.map(msg =>
     if (messages.length > 1) {
       Alert.alert(
         '確認',
-        '戻ると現在の会話履歴が失われますが、よろしいですか？',
+        '戻ると現在の会話履歴が失われます',
         [
           {
             text: 'キャンセル',
@@ -231,6 +283,9 @@ ${allMessages.map(msg =>
     }
   }
 
+
+
+  // メッセージのオブジェクト入れたらAIかユーザーかによってチャットのui作ってくれるやつ
   const renderMessage = (message: ChatMessage) => (
     <View
       key={message.id}
@@ -318,6 +373,7 @@ ${allMessages.map(msg =>
         </View>
 
         {/* 追加のチャットメッセージ */}
+        {/* AI初手回答からmessageに記録されていってslice(1)（sliceは非破壊）によって初手以降のメッセージをレンダリングしてくれて次々表示してくれる */}
         {messages.slice(1).map(renderMessage)}
         {loading && (
           <View style={styles.loadingContainer}>
