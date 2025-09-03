@@ -3,16 +3,16 @@ import * as Localization from 'expo-localization'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
-    Alert,
-    Keyboard,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Keyboard,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native'
 
 export default function DiagnosisScreen() {
@@ -152,7 +152,7 @@ export default function DiagnosisScreen() {
             )}
           </View>
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <TextInput
               style={styles.notesInput}
               value={notes}
@@ -163,7 +163,7 @@ export default function DiagnosisScreen() {
               numberOfLines={6}
               textAlignVertical="top"
             />
-          </View>
+          </View> */}
                 </View>
       </ScrollView>
     </SafeAreaView>
