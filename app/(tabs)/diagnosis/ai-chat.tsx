@@ -87,6 +87,7 @@ export default function AiChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([])
+  const [quickReplies, setQuickReplies] = useState<string[]>([])
 
   // 初回読み込み時にAI分析を実行(.onappear)
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function AiChatScreen() {
     }
   }, [])
 
+  // AI初手投げの時に実行される
   const performAIAnalysis = async () => {
     setIsAnalyzing(true)
     try {
@@ -162,6 +164,9 @@ ${dbData.wasteRecords.length > 0 ?
       // 全メッセージとその場のメッセージに追加
       setMessages([initialMessage])
       setAllMessages([initialMessage])
+      
+      // メッセージ入力の上にあるタップでちょろっと質問できるやつ
+      await generateQuickReplies(analysisResult)
     } catch (error) {
       console.error('AI分析エラー:', error)
       const errorMessage: ChatMessage = {
@@ -177,6 +182,44 @@ ${dbData.wasteRecords.length > 0 ?
     }
   }
 
+  // サジェスト生成する源のやつ
+  const generateQuickReplies = async (aiResponse: string) => {
+    try {
+      const prompt = `
+以下のAI診断結果を読んで、ユーザーが聞きそうな追加質問を3つ提案してください。
+各質問は簡潔で、一般的なフォローアップの内容にしてください。
+
+AI診断結果：
+${aiResponse}
+
+3つの質問を以下の形式で出力してください（必ず3行で、余計な文字は含めないでください）（以下の質問内容は例なので必ずしもこの質問である必要はなく，ユーザーが聞きそうな質問事項にする事を優先してください）：
+もっと詳しい保存方法を教えて
+代替レシピを提案して
+同じ食材での過去の廃棄記録は？
+`
+
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: prompt,
+      })
+
+      const suggestionsText = response.text?.trim() || ''
+      const suggestions = suggestionsText.split('\n').filter(line => line.trim().length > 0).slice(0, 3)
+      
+      setQuickReplies(suggestions)
+    } catch (error) {
+      console.error('クイック返信生成エラー:', error)
+      // デフォルトの質問を設定
+      setQuickReplies([
+        'もっと詳しい保存方法を教えて',
+        '代替レシピを提案して',
+        '購入量を調整するアドバイスをください'
+      ])
+    }
+  }
+
+  //! 手入力の質問時
+  // リプライ返信の時に実行されるやつ
   const handleSendQuestion = async () => {
     if (!question.trim()) return
 
@@ -244,6 +287,96 @@ ${allMessages.map(msg =>
       }
       setMessages(prev => [...prev, aiResponse])
       setAllMessages(prev => [...prev, aiResponse])
+      
+      // 新しいクイック返信を生成
+      await generateQuickReplies(response.text ?? '')
+    } catch (error) {
+      console.error('AI応答エラー:', error)
+      const errorResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: 'エラーが発生しました。しばらくしてから再度お試しください。',
+        isUser: false,
+        timestamp: new Date(),
+      }
+      setMessages(prev => [...prev, errorResponse])
+      setAllMessages(prev => [...prev, errorResponse])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  //! ボタンからの質問時
+  // 横スクロールのクイック返信ボタンを押したときに実行されるやつ
+  const handleQuickReply = async (replyText: string) => {
+    if (!replyText.trim()) return
+
+    // ユーザーメッセージを追加
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      text: replyText,
+      isUser: true,
+      timestamp: new Date(),
+    }
+    setMessages(prev => [...prev, userMessage])
+    setAllMessages(prev => [...prev, userMessage])
+    setLoading(true)
+    
+    // クイック返信をクリア
+    setQuickReplies([])
+
+    try {
+      // データベースからデータを取得
+      const dbData = getDatabaseData()
+      
+      // Gemini APIで追加質問に答える
+      const followUpPrompt = `
+あなたは食品ロス防止アドバイザーです。
+
+前回の診断対象:
+食材名：${diagnosisData.foodName}
+購入予定量：${diagnosisData.amount}
+期限：${diagnosisData.expiryDate}
+備考：${diagnosisData.notes || 'なし'}
+
+【プロフィール情報】
+世帯人数：${dbData.profile.household_size}
+自炊頻度：${dbData.profile.cooking_frequency}
+買い物の頻度：${dbData.profile.shopping_frequency}
+
+【廃棄経歴】
+過去の廃棄記録全履歴：
+${dbData.wasteRecords.length > 0 ? 
+  dbData.wasteRecords.map(record => 
+    `食材名:${record.food_name} 購入量:${record.buy_amount} 廃棄量:${record.throw_amount} 日期:${record.created_at.split('T')[0]}`
+  ).join('\n') : 
+  '廃棄記録がありません'}
+
+【会話履歴】
+${allMessages.map(msg => `${msg.isUser ? 'ユーザー' : 'AI'}：${msg.text}`).join('\n')}
+
+【新しい質問】
+${replyText}
+
+上記の情報に基づいて、ユーザーの質問に具体的で実用的な回答をしてください。
+`
+
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: followUpPrompt,
+      })
+
+      const aiResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: response.text ?? 'エラーが発生しました',
+        isUser: false,
+        timestamp: new Date(),
+      }
+      // messageに追加したのでsliceでチャットのUIが更新される
+      setMessages(prev => [...prev, aiResponse])
+      setAllMessages(prev => [...prev, aiResponse])
+      
+      // 新しいクイック返信を生成
+      await generateQuickReplies(response.text ?? '')
     } catch (error) {
       console.error('AI応答エラー:', error)
       const errorResponse: ChatMessage = {
@@ -391,6 +524,27 @@ ${allMessages.map(msg =>
         styles.inputContainer,
         keyboardVisible && styles.inputContainerWithKeyboard
       ]}>
+        {/* クイック返信ボタンのUI（横スクロール可 */}
+        {quickReplies.length > 0 && (
+          <ScrollView 
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.quickRepliesContainer}
+            contentContainerStyle={styles.quickRepliesContent}
+          >
+            {quickReplies.map((reply, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.quickReplyButton}
+                onPress={() => handleQuickReply(reply)}
+                disabled={loading}
+              >
+                <Text style={styles.quickReplyText}>{reply}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+        
         <View style={styles.inputRow}>
           <TextInput
             style={styles.questionInput}
@@ -606,6 +760,28 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
+  },
+  quickRepliesContainer: {
+    marginBottom: 12,
+    paddingVertical: 8,
+  },
+  quickRepliesContent: {
+    paddingHorizontal: 4,
+    gap: 8,
+  },
+  quickReplyButton: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginHorizontal: 4,
+  },
+  quickReplyText: {
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '500',
   },
 })
 
