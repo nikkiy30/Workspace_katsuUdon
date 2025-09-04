@@ -1,10 +1,11 @@
+import { Colors } from '@/constants/Colors'
 import { useRouter } from 'expo-router'
 import { useEffect } from 'react'
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native'
 
 export default function CompleteScreen() {
@@ -26,19 +27,10 @@ export default function CompleteScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.icon}>🎉</Text>
-        <Text style={styles.title}>完了しました！</Text>
-        <Text style={styles.subtitle}>
-          プロフィール設定が{'\n'}
-          完了しました
-        </Text>
+        <Text style={styles.title}>プロフィール設定が完了しました！</Text>
         
         <Text style={styles.description}>
-          あなたの食生活に合わせた{'\n'}
-          おすすめ機能をご利用ください。{'\n'}
-          {'\n'}
-          食品ロス削減のために{'\n'}
-          一緒に頑張りましょう！
+          さあ、CHOPとあなただけの{'\n'}フードロス削減プランを始めましょう！
         </Text>
         
         <TouchableOpacity style={styles.button} onPress={handleGoToMain}>
@@ -69,10 +61,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#2d3748',
-    marginBottom: 16,
+    color: Colors.light.primary,
+    marginBottom: 32,
   },
   subtitle: {
     fontSize: 20,
@@ -88,7 +80,7 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   button: {
-    backgroundColor: '#48bb78',
+    backgroundColor: Colors.light.accent,
     paddingVertical: 16,
     paddingHorizontal: 48,
     borderRadius: 12,
