@@ -30,7 +30,7 @@ export default function Question3() {
       // プロフィールにデータを保存
       const success = await saveToProfile();
       if (success) {
-        router.push('/(tabs)');
+        router.replace('/(tabs)');
       }
     }
   };
