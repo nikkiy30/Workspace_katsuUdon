@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { Colors } from '../../../constants/Colors'
 
 export default function DiagnosisScreen() {
   const router = useRouter()
@@ -143,10 +144,8 @@ export default function DiagnosisScreen() {
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
                 onChange={handleDateChange}
-                accentColor="#2563eb"
                 themeVariant="light"
                 style={Platform.OS === 'ios' ? styles.datePickerIOS : {}}
-                textColor="#333333"
                 locale={deviceLocale.startsWith('ja') ? 'ja' : 'ja-JP'}
               />
             )}
@@ -189,12 +188,12 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 18,
-    color: '#2563eb',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   saveButtonArrow: {
     fontSize: 18,
-    color: '#2563eb',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   content: {
@@ -212,23 +211,23 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#333333',
+    color: Colors.light.primary,
     marginBottom: 12,
     fontWeight: '500',
   },
   input: {
     borderWidth: 2,
-    borderColor: '#2563eb',
+    borderColor: Colors.light.primary,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     backgroundColor: '#f8fafc',
-    color: '#333333',
+    color: Colors.light.primary,
   },
   dateInput: {
     borderWidth: 2,
-    borderColor: '#2563eb',
+    borderColor: Colors.light.primary,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -239,7 +238,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 16,
-    color: '#333333',
+    color: Colors.light.primary,
     fontWeight: '500',
   },
   dateIcon: {
@@ -248,13 +247,13 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     borderWidth: 2,
-    borderColor: '#2563eb',
+    borderColor: Colors.light.primary,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     backgroundColor: '#f8fafc',
-    color: '#333333',
+    color: Colors.light.primary,
     height: 120,
     textAlignVertical: 'top',
   },

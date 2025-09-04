@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors'
 import { UserDB } from '@/database/db/Userdb'
 import { router, useFocusEffect } from 'expo-router'
 import { CookingPot, Edit3, ShoppingCart, Users } from 'lucide-react-native'
@@ -41,7 +42,6 @@ export default function ProfileScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>プロフィール情報</Text>
-            <Text style={styles.subtitle}>AIがより適した提案ができるようになります</Text>
           </View>
         </View>
 
@@ -165,10 +165,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
     paddingVertical: 24,
     borderRadius: 24,
-    shadowColor: '#156486',
+    shadowColor: Colors.light.primary,
     shadowOffset: {
       width: 0,
       height: 4,
