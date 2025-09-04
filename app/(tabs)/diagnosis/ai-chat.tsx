@@ -562,6 +562,10 @@ ${replyText}
             <Text style={styles.sendButtonText}>送信</Text>
           </TouchableOpacity>
         </View>
+
+        <Text style={styles.cautionText}>
+          AIの回答は正しいとは限りません。{'\n'}重要な情報は確認するようにしてください。
+        </Text>
       </View>
     </SafeAreaView>
   )
@@ -782,6 +786,14 @@ const styles = StyleSheet.create({
     color: '#475569',
     fontSize: 14,
     fontWeight: '500',
+  },
+  cautionText: {
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 16,
+    color: '#6b7280',
+    opacity: 0.7,
   },
 })
 
