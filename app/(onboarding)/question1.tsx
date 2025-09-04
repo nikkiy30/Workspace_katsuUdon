@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -42,19 +43,22 @@ export default function Question1() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
+        {/* 左矢印 */}
+        <TouchableOpacity 
             style={styles.backButton} 
             onPress={handleBack}
           >
-            <ArrowLeft size={24} color="#156486" />
-          </TouchableOpacity>
-          <ThemedText style={styles.progressText}>1/3</ThemedText>
-        </View>
+          <ArrowLeft size={24} color="#156486" />
+        </TouchableOpacity>
 
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressBar, { width: '33%' }]} />
+        <View style={styles.stepperContainer}>
+          <View style={[styles.stepDot, styles.stepDotActive]} />
+          <View style={styles.stepLine} />
+          <View style={styles.stepDot} />
+          <View style={styles.stepLine} />
+          <View style={styles.stepDot} />
+          <View style={styles.stepLine} />
+          <View style={styles.stepDot} />
         </View>
 
         {/* Question */}
@@ -111,6 +115,33 @@ export default function Question1() {
 }
 
 const styles = StyleSheet.create({
+  stepperContainer: {
+    flexDirection: 'row', // 子要素を横並びにする
+    alignItems: 'center', // 子要素を垂直方向の中央に揃える
+    marginTop: 20,
+    marginBottom: 50,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  backButton: {
+    marginLeft: 10,
+    padding: 8,
+  },
+  stepDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6, // 円形にする
+    backgroundColor: '#e5e7eb', // 非アクティブな点の色
+  },
+  stepDotActive: {
+    backgroundColor: Colors.light.primary,
+  },
+  stepLine: {
+    width: 32,
+    height: 2,
+    backgroundColor: '#e5e7eb', // 点の間の線の色
+    marginHorizontal: 8,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fafeff',
@@ -132,7 +163,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#156486',
+    color: Colors.light.primary,
   },
   progressContainer: {
     height: 4,
@@ -142,13 +173,13 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
     borderRadius: 2,
   },
   questionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#156486',
+    color: '#20556C',
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -162,7 +193,7 @@ const styles = StyleSheet.create({
   optionButton: {
     backgroundColor: '#f8f9fa',
     borderWidth: 1.5,
-    borderColor: '#156486',
+    borderColor: Colors.light.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -170,12 +201,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionButtonSelected: {
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
   },
   optionText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#156486',
+    color: Colors.light.primary,
   },
   optionTextSelected: {
     color: '#fafeff',
@@ -185,7 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   nextButton: {
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
     borderRadius: 24,
     paddingVertical: 14,
     alignItems: 'center',
