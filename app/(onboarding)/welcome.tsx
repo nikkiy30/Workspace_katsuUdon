@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import { ArrowRight, ChefHat } from 'lucide-react-native';
 import {
@@ -9,8 +10,8 @@ import {
 } from 'react-native';
 
 export default function WelcomeScreen() {
-  const goToQ1 = () => {
-    router.push('/(onboarding)/question1')
+  const goToStart = () => {
+    router.push('/(onboarding)/start')
   }
 
   return (
@@ -39,40 +40,17 @@ export default function WelcomeScreen() {
 
             {/* Description */}
             <ThemedText style={styles.description}>
-              あなたの食生活をもっと楽しく{'\n'}
-              もっと廃棄を少なく{'\n'}
-              簡単な質問からはじめましょう
+              毎日の買い物から買った食材の使い切りまで、{'\n'}
+              あなたに合わせてCHOPが賢くサポートします{'\n'}
             </ThemedText>
-          </View>
-
-          {/* Features */}
-          <View style={styles.featuresContainer}>
-            <View style={styles.featureItem}>
-              <View style={styles.featureDot} />
-              <ThemedText style={styles.featureText}>
-                パーソナライズされた提案
-              </ThemedText>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={styles.featureDot} />
-              <ThemedText style={styles.featureText}>
-                AI による適切な購入診断
-              </ThemedText>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={styles.featureDot} />
-              <ThemedText style={styles.featureText}>
-                シンプルなデザインで使いやすい
-              </ThemedText>
-            </View>
           </View>
         </View>
 
         {/* Start Button */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={goToQ1}>
-            <ThemedText style={styles.buttonText}>はじめる</ThemedText>
-            <ArrowRight size={20} color="#fafeff" />
+          <TouchableOpacity style={styles.button} onPress={goToStart} activeOpacity={0.8}>
+            <ThemedText style={styles.buttonText}>次へ</ThemedText>
+            <ArrowRight size={20} color="#ffffff" />
           </TouchableOpacity>
         </View>
       {/* </SafeAreaView> */}
@@ -161,7 +139,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     padding: 12,
     fontWeight: '700',
-    color: '#156486',
+    color: Colors.light.accent,
     textAlign: 'center',
     // borderWidth:1,
   },
@@ -173,8 +151,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   description: {
-    fontSize: 16,
-    color: '#888888',
+    fontSize: 12,
+    color: Colors.light.primary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 0,
@@ -206,7 +184,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   button: {
-    backgroundColor: '#156486',
+    backgroundColor: Colors.light.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
