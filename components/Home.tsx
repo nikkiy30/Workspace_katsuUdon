@@ -11,6 +11,12 @@ const navigationItems = [
   { icon: MoreHorizontal, label: "メニュー" },
 ];
 
+const today = new Date();
+const month = today.getMonth() + 1;
+const day = today.getDate();
+const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
+const weekDay = weekDays[today.getDay()];
+
 // ホーム画面
 export const Screen = () => {
   return (
@@ -19,7 +25,7 @@ export const Screen = () => {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.badge}>
           <ThemedText type="title" style={styles.badgeText}>
-            8/21(木)
+            {month}月{day}日（{weekDay}）
           </ThemedText>
         </View>
 
