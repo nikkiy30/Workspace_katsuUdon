@@ -1,12 +1,12 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
 import { WasteRecordInput } from '@/database/types';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
 import { useState } from 'react';
-import { Colors } from '@/constants/Colors';
 import {
   Alert,
   SafeAreaView,
@@ -91,7 +91,7 @@ export default function WasteScreen() {
       Alert.alert('保存完了', '廃棄記録を保存しました', [
         {
           text: 'OK',
-          onPress: () => router.push('/feedback'),
+          onPress: () => router.back(),
         },
       ]);
     } catch (error) {
