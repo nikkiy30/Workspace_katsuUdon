@@ -3,50 +3,52 @@ import { BotMessageSquare, CalendarCheck2, House, UserRoundPen } from 'lucide-re
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.light.primary,
+        tabBarActiveTintColor: '#FFFFFF',
+        tabBarInactiveTintColor: '#FFFFFF80',
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
             position: 'absolute',
+            backgroundColor: Colors.light.primary,
           },
-          default: {},
+          default: {
+            backgroundColor: Colors.light.primary,
+          },
         }),
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'ホーム',
-          tabBarIcon: ({ color }) => <House size={24} color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ color }) => <House size={24} color={color} fontWeight="2px" />,
         }}
       />
       <Tabs.Screen
         name="diagnosis"
         options={{
-          title: 'AI相談',
+          title: 'AI',
           tabBarIcon: ({ color }) => <BotMessageSquare size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          title: '記録',
+          title: 'Report',
           tabBarIcon: ({ color }) => <CalendarCheck2 size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'プロフィール',
-          tabBarIcon: ({ color }) => <UserRoundPen size={24} color={color} />,
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <UserRoundPen color={color} />,
         }}
       />
     </Tabs>
