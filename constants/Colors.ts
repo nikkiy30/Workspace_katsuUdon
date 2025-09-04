@@ -21,7 +21,9 @@ export const Colors = {
     sub: '#E6F5FB',            // Sub #E6F5FB (背景やボーダー)
     subSecondary: '#BBEBFF',   // Sub2 #BBEBFF (アクセントカラー)
 
-    background: '#FFFFFF'
+    background: '#FFFFFF',
+
+    accent: '#FF7B53'
   }
 };
 
