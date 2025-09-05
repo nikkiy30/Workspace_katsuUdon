@@ -53,8 +53,8 @@ export default function Question1() {
 
         <View style={styles.stepperContainer}>
           <View style={[styles.stepDot, styles.stepDotActive]} />
-          <View style={styles.stepLine} />
-          <View style={styles.stepDot} />
+          <View style={styles.stepLineActive} />
+          <View style={[styles.stepDot, styles.stepDotActive]} />
           <View style={styles.stepLine} />
           <View style={styles.stepDot} />
           <View style={styles.stepLine} />
@@ -105,7 +105,7 @@ export default function Question1() {
                 !selectedOption && styles.nextButtonTextDisabled
               ]}
             >
-              次へ
+              次へ　＞
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -133,14 +133,20 @@ const styles = StyleSheet.create({
     borderRadius: 6, // 円形にする
     backgroundColor: '#e5e7eb', // 非アクティブな点の色
   },
-  stepDotActive: {
-    backgroundColor: Colors.light.primary,
-  },
   stepLine: {
     width: 32,
     height: 2,
     backgroundColor: '#e5e7eb', // 点の間の線の色
     marginHorizontal: 8,
+  },
+  stepDotActive: {
+    backgroundColor: Colors.light.primary,
+  },
+  stepLineActive: {
+    width: 32,
+    height: 2,
+    marginHorizontal: 8,
+    backgroundColor: Colors.light.primary,
   },
   container: {
     flex: 1,
@@ -181,44 +187,47 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#20556C',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 0,
   },
   optionsContainer: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 0,
     paddingHorizontal: 20,
     // borderWidth:1,
     justifyContent: 'center',
+    marginBottom:40,
   },
   optionButton: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.light.base,
     borderWidth: 1.5,
-    borderColor: Colors.light.primary,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    borderColor: Colors.light.textSecondary,
+    borderRadius: 25,
+    paddingVertical: 4,
+    paddingHorizontal: 24,
+    marginBottom: 6,
     alignItems: 'center',
+    marginHorizontal: 40,
+    marginVertical: 12,
   },
   optionButtonSelected: {
-    backgroundColor: Colors.light.primary,
+    borderColor:Colors.light.primary,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
-    color: Colors.light.primary,
+    color: Colors.light.textSecondary,
   },
   optionTextSelected: {
-    color: '#fafeff',
+    color: Colors.light.primary,
   },
   buttonContainer: {
     paddingBottom: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 40,
   },
   nextButton: {
     backgroundColor: Colors.light.primary,
-    borderRadius: 24,
-    paddingVertical: 14,
+    borderRadius: 18,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   nextButtonDisabled: {
