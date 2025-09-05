@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors'
 import { UserDB } from '@/database/db/Userdb'
 import { Profile } from '@/database/types'
 import { useFocusEffect } from 'expo-router'
@@ -137,68 +138,74 @@ export default function ProfileScreen() {
         <View style={styles.profileContainer}>
           {/* 世帯人数 */}
           <View style={styles.profileSection}>
-            <View style={styles.sectionHeader}>
-              <Users size={22} color="#156486" />
-              <Text style={styles.profileLabel}>世帯人数</Text>
+            <View style={styles.sectionHeaderRow}>
+              <View style={styles.sectionHeader}>
+                <Users size={22} color="#156486" />
+                <Text style={styles.profileLabel}>世帯人数</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.selectorContainer}
+                onPress={() => showActionSheet(
+                  householdOptions,
+                  profile.household_size,
+                  (value) => setProfile({ ...profile, household_size: value }),
+                  '世帯人数を選択してください'
+                )}
+              >
+                <Text style={styles.selectorText}>
+                  {getDisplayValue(householdOptions, profile.household_size)}
+                </Text>
+                <ChevronDown size={20} color="#4a5568" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.selectorContainer}
-              onPress={() => showActionSheet(
-                householdOptions,
-                profile.household_size,
-                (value) => setProfile({ ...profile, household_size: value }),
-                '世帯人数を選択してください'
-              )}
-            >
-              <Text style={styles.selectorText}>
-                {getDisplayValue(householdOptions, profile.household_size)}
-              </Text>
-              <ChevronDown size={20} color="#4a5568" />
-            </TouchableOpacity>
           </View>
 
           {/* 自炊頻度 */}
           <View style={styles.profileSection}>
-            <View style={styles.sectionHeader}>
-              <CookingPot size={22} color="#156486" />
-              <Text style={styles.profileLabel}>自炊頻度</Text>
+            <View style={styles.sectionHeaderRow}>
+              <View style={styles.sectionHeader}>
+                <CookingPot size={22} color="#156486" />
+                <Text style={styles.profileLabel}>自炊頻度</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.selectorContainer}
+                onPress={() => showActionSheet(
+                  cookingOptions,
+                  profile.cooking_frequency,
+                  (value) => setProfile({ ...profile, cooking_frequency: value }),
+                  '自炊頻度を選択してください'
+                )}
+              >
+                <Text style={styles.selectorText}>
+                  {getDisplayValue(cookingOptions, profile.cooking_frequency)}
+                </Text>
+                <ChevronDown size={20} color="#4a5568" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.selectorContainer}
-              onPress={() => showActionSheet(
-                cookingOptions,
-                profile.cooking_frequency,
-                (value) => setProfile({ ...profile, cooking_frequency: value }),
-                '自炊頻度を選択してください'
-              )}
-            >
-              <Text style={styles.selectorText}>
-                {getDisplayValue(cookingOptions, profile.cooking_frequency)}
-              </Text>
-              <ChevronDown size={20} color="#4a5568" />
-            </TouchableOpacity>
           </View>
 
           {/* 買い物頻度 */}
           <View style={styles.profileSection}>
-            <View style={styles.sectionHeader}>
-              <ShoppingCart size={22} color="#156486" />
-              <Text style={styles.profileLabel}>食材の買い物頻度</Text>
+            <View style={styles.sectionHeaderRow}>
+              <View style={styles.sectionHeader}>
+                <ShoppingCart size={22} color="#156486" />
+                <Text style={styles.profileLabel}>買い物頻度</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.selectorContainer}
+                onPress={() => showActionSheet(
+                  shoppingOptions,
+                  profile.shopping_frequency,
+                  (value) => setProfile({ ...profile, shopping_frequency: value }),
+                  '買い物頻度を選択してください'
+                )}
+              >
+                <Text style={styles.selectorText}>
+                  {getDisplayValue(shoppingOptions, profile.shopping_frequency)}
+                </Text>
+                <ChevronDown size={20} color="#4a5568" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.selectorContainer}
-              onPress={() => showActionSheet(
-                shoppingOptions,
-                profile.shopping_frequency,
-                (value) => setProfile({ ...profile, shopping_frequency: value }),
-                '買い物頻度を選択してください'
-              )}
-            >
-              <Text style={styles.selectorText}>
-                {getDisplayValue(shoppingOptions, profile.shopping_frequency)}
-              </Text>
-              <ChevronDown size={20} color="#4a5568" />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -239,8 +246,8 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderRadius: 12,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderWidth: 2,
+    borderColor: Colors.light.primary,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -250,13 +257,18 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    flex: 1,
   },
   profileLabel: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#1a1a1a',
     marginLeft: 12,
@@ -268,10 +280,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#d1d5db',
     borderRadius: 10,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 14,
     minHeight: 50,
+    width: "60%",
   },
   selectorText: {
     fontSize: 17,
