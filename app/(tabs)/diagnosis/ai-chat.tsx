@@ -97,7 +97,7 @@ export default function AiChatScreen() {
     '使用計画を考えて'
   ])
 
-  // AIレスポンスからJSONを抽出して評価レベルを取得する関数
+  // AIレスポンスからJSONを抽出して評価レベルを取得する関数（最終的に数値の1~3で返す）
   const extractRecommendationFromJSON = (text: string): number => {
     try {
       // JSONブロックを探す
