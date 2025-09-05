@@ -8,8 +8,11 @@ import {
   Platform,
   Dimensions,
   Switch,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { X, Check, Calendar, Clock, Zap, Plus, CircleAlert as AlertCircle } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Localization from 'expo-localization';
 import { FoodItem } from './foodTypes';
 import { Colors } from '@/constants/Colors';
 
@@ -29,6 +32,8 @@ export default function UsageDateModal({
   selectedItem,
 }: Props) {
   const [selectedDate, setSelectedDate] = useState('');
+  const [showUsageDatePicker, setShowUsageDatePicker] = useState(false);
+  const [usagePickerDate, setUsagePickerDate] = useState<Date>(new Date());
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [includeExpiry, setIncludeExpiry] = useState(true);
   const [expiryDate, setExpiryDate] = useState('');
@@ -84,26 +89,32 @@ export default function UsageDateModal({
     addUsageDate(date);
   };
 
-  const handleSaveAll = () => {
-    if (selectedItem) {
-      // 複数の使用予定日を個別に保存
-      selectedDates.forEach((date, index) => {
-        setTimeout(() => {
-          onSave(
-            selectedItem, 
-            date, 
-            includeExpiry && index === 0, // 最初の日付のみ消費期限を追加
-            includeExpiry ? expiryDate : undefined
-          );
-        }, index * 100); // 少し間隔を空けて保存
-      });
-      
-      // リセット
-      setSelectedDates([]);
-      setSelectedDate('');
-      setIncludeExpiry(true);
-      onClose();
+  const handleSaveAll = async () => {
+    if (!selectedItem) return;
+    // 順次保存して競合を回避
+    for (let i = 0; i < selectedDates.length; i++) {
+      const date = selectedDates[i];
+      // 最初の1件のみ消費期限を付与
+      // 以降は使用予定のみ追加
+      // includeExpiryがOFFなら全て使用予定のみ
+      // expiryDateは初期表示時に既定値が入っている
+      // selectedItem自体は不変
+      // onSaveは親側でAsyncStorageに追記
+      // 連続保存に備えawaitで逐次化
+      // eslint-disable-next-line no-await-in-loop
+      await onSave(
+        selectedItem,
+        date,
+        includeExpiry && i === 0,
+        includeExpiry ? expiryDate : undefined
+      );
     }
+
+    // リセット
+    setSelectedDates([]);
+    setSelectedDate('');
+    setIncludeExpiry(true);
+    onClose();
   };
 
   const handleAddCustomDate = () => {
@@ -111,6 +122,15 @@ export default function UsageDateModal({
       addUsageDate(selectedDate);
       setSelectedDate('');
     }
+  };
+
+  const deviceLocale = Localization.getLocales()[0]?.languageTag || 'ja-JP';
+
+  const handleUsageDateChange = (_event: any, picked?: Date) => {
+    const current = picked || usagePickerDate;
+    setShowUsageDatePicker(Platform.OS === 'ios');
+    setUsagePickerDate(current);
+    setSelectedDate(current.toISOString().split('T')[0]);
   };
 
   if (!selectedItem) return null;
@@ -147,33 +167,19 @@ export default function UsageDateModal({
               <Text style={styles.itemName}>{selectedItem.name}</Text>
               <Text style={styles.itemQuantity}>{selectedItem.quantity}</Text>
             </View>
+            {(includeExpiry || selectedItem.expiryDate) && (
+              <Text style={styles.itemExpiry}>
+                消費期限: {new Date((selectedItem.expiryDate || expiryDate) as string).toLocaleDateString('ja-JP', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Text>
+            )}
             {/* カテゴリーは使用しないため非表示 */}
           </View>
 
-          {/* 選択された使用予定日一覧 */}
-          {selectedDates.length > 0 && (
-            <View style={styles.selectedDatesSection}>
-              <Text style={styles.sectionTitle}>選択された使用予定日</Text>
-              <View style={styles.selectedDatesList}>
-                {selectedDates.map((date) => (
-                  <View key={date} style={styles.selectedDateItem}>
-                    <Text style={styles.selectedDateText}>
-                      {new Date(date).toLocaleDateString('ja-JP', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => removeUsageDate(date)}
-                      style={styles.removeDateButton}
-                    >
-                      <X size={16} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
+         
 
           {/* クイック選択オプション */}
           {/* <View style={styles.quickSelectSection}>
@@ -218,12 +224,7 @@ export default function UsageDateModal({
             <View style={styles.customDateContainer}>
               <TouchableOpacity
                 style={styles.datePickerButton}
-                onPress={() => {
-                  // 実際の実装では日付ピッカーを表示
-                  const today = new Date();
-                  today.setDate(today.getDate() + 3);
-                  setSelectedDate(today.toISOString().split('T')[0]);
-                }}
+                onPress={() => setShowUsageDatePicker((prev) => !prev)}
               >
                 <Calendar size={20} color={Colors.light.primary} />
                 <Text style={styles.datePickerText}>
@@ -237,6 +238,18 @@ export default function UsageDateModal({
                   }
                 </Text>
               </TouchableOpacity>
+
+              {showUsageDatePicker && (
+                 <DateTimePicker
+                 value={usagePickerDate}
+                 mode="date"
+                 display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                 onChange={handleUsageDateChange}
+                 themeVariant="light"
+                 style={Platform.OS === 'ios' ? styles.datePickerIOS : {}}
+                 locale={deviceLocale.startsWith('ja') ? 'ja' : 'ja-JP'}
+               />
+              )}
               
               {selectedDate && (
                 <TouchableOpacity
@@ -249,6 +262,31 @@ export default function UsageDateModal({
               )}
             </View>
           </View>
+
+           {/* 選択された使用予定日一覧 */}
+           {selectedDates.length > 0 && (
+            <View style={styles.selectedDatesSection}>
+              <Text style={styles.sectionTitle}>選択された使用予定日</Text>
+              <View style={styles.selectedDatesList}>
+                {selectedDates.map((date) => (
+                  <View key={date} style={styles.selectedDateItem}>
+                    <Text style={styles.selectedDateText}>
+                      {new Date(date).toLocaleDateString('ja-JP', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => removeUsageDate(date)}
+                      style={styles.removeDateButton}
+                    >
+                      <X size={16} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
                     {/* 消費期限も追加するオプション */}
                     <View style={styles.expirySection}>
@@ -265,28 +303,7 @@ export default function UsageDateModal({
               />
             </View>
             
-            {includeExpiry && (
-              <View style={styles.expiryDateContainer}>
-                <Text style={styles.expiryDateLabel}>
-                  消費期限: {new Date(expiryDate).toLocaleDateString('ja-JP', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
-                <TouchableOpacity
-                  style={styles.changeExpiryButton}
-                  onPress={() => {
-                    // 簡単な日付変更（実際の実装では日付ピッカーを使用）
-                    const newDate = new Date(expiryDate);
-                    newDate.setDate(newDate.getDate() + 1);
-                    setExpiryDate(newDate.toISOString().split('T')[0]);
-                  }}
-                >
-                  <Text style={styles.changeExpiryText}>変更</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            {/* includeExpiry 選択時でも詳細な日付表示は行わない */}
           </View>
 
           {/* 使用例・ヒント */}
@@ -378,6 +395,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#6b7280',
+  },
+  itemExpiry: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.light.primary,
   },
   categoryBadge: {
     alignSelf: 'flex-start',
@@ -519,6 +542,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  datePickerIOS: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  pickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+  },
+  overlayBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  pickerCard: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 24,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 8,
+    // shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
   expirySection: {
     backgroundColor: '#fef3cd',

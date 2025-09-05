@@ -19,10 +19,12 @@ import { FoodItem, MarkedDates } from './foodTypes';
 import { getFoodItems, saveFoodItem, clearFoodItems, updateFoodItem } from './foodStorage';
 import { Colors } from '@/constants/Colors';
 import TagActionButton from './TagActionButton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
 export default function CalendarScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
   );
@@ -63,13 +65,17 @@ export default function CalendarScreen() {
     loadFoodItems();
   }, []);
 
+  // 選択日やデータが変わったらマーキングを最新化
+  useEffect(() => {
+    updateMarkedDates(foodItems, selectedDate);
+  }, [foodItems, selectedDate]);
+
   const loadFoodItems = async () => {
     const items = await getFoodItems();
     setFoodItems(items);
-    updateMarkedDates(items);
   };
 
-  const updateMarkedDates = (items: FoodItem[]) => {
+  const updateMarkedDates = (items: FoodItem[], selected: string = selectedDate) => {
     const marked: MarkedDates = {};
 
     items.forEach((item) => {
@@ -83,35 +89,30 @@ export default function CalendarScreen() {
           selectedDotColor: '#ffffff',
         });
       }
-
       // 消費期限のマーキング
       if (item.expiryDate) {
         const today = new Date().toISOString().split('T')[0];
         const isExpired = item.expiryDate < today;
-        const isExpiringSoon =
-          new Date(item.expiryDate).getTime() - new Date().getTime() <=
-          2 * 24 * 60 * 60 * 1000;
-
+        
         if (!marked[item.expiryDate]) {
           marked[item.expiryDate] = { dots: [], marked: true };
         }
-
         marked[item.expiryDate].dots?.push({
-          color: isExpired ? '#ef4444' : isExpiringSoon ? '#f59e0b' : '#10b981',
+          color: isExpired ? '#ef4444' :'#FF7B53',
           selectedDotColor: '#ffffff',
         });
       }
     });
 
     // 選択された日付のハイライト
-    if (marked[selectedDate]) {
-      marked[selectedDate] = {
-        ...marked[selectedDate],
+    if (marked[selected]) {
+      marked[selected] = {
+        ...marked[selected],
         selected: true,
         selectedColor: Colors.light.primary,
       };
     } else {
-      marked[selectedDate] = {
+      marked[selected] = {
         selected: true,
         selectedColor: Colors.light.primary,
         dots: [],
@@ -124,13 +125,11 @@ export default function CalendarScreen() {
   const handleAddFood = async (item: Omit<FoodItem, 'id'>) => {
     const newItem: FoodItem = {
       ...item,
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     };
 
-    const updatedItems = [...foodItems, newItem];
     await saveFoodItem(newItem);
-    setFoodItems(updatedItems);
-    updateMarkedDates(updatedItems);
+    setFoodItems((prev) => [...prev, newItem]);
     setShowAddModal(false);
   };
 
@@ -200,9 +199,18 @@ export default function CalendarScreen() {
         it.id === itemId ? { ...it, ...updates } : it
       );
       setFoodItems(updatedItems);
-      updateMarkedDates(updatedItems);
     } catch (e) {
       Alert.alert('削除エラー', '削除に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  const formatJPDate = (dateStr: string) => {
+    try {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dt = new Date(y, (m || 1) - 1, d || 1);
+      return dt.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' });
+    } catch {
+      return dateStr;
     }
   };
 
@@ -226,7 +234,6 @@ export default function CalendarScreen() {
                   onPress: async () => {
                     await clearFoodItems();
                     setFoodItems([]);
-                    updateMarkedDates([]);
                   },
                 },
               ]);
@@ -243,7 +250,11 @@ export default function CalendarScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+      >
         {/* 期限間近の食材アラート */}
         {getTodaysExpiring().length > 0 && (
           <View style={styles.alertContainer}>
@@ -280,10 +291,10 @@ export default function CalendarScreen() {
             current={selectedDate}
             onDayPress={(day) => {
               setSelectedDate(day.dateString);
-              updateMarkedDates(foodItems);
             }}
             markingType={'multi-dot'}
             markedDates={markedDates}
+            monthFormat={'yyyy年 M月'}
             theme={{
               backgroundColor: '#ffffff',
               calendarBackground: '#ffffff',
@@ -311,13 +322,13 @@ export default function CalendarScreen() {
           />
         </View>
 
-        {/* 選択日の食材リスト */}
-        {getSelectedDateItems().length > 0 && (
-          <View style={styles.selectedDateContainer}>
-            <Text style={styles.selectedDateTitle}>
-              {selectedDate} の食材
-            </Text>
-            {getSelectedDateItems().map((item) => (
+        {/* 選択日のイベントリスト（空でも表示） */}
+        <View style={styles.selectedDateContainer}>
+          <Text style={styles.selectedDateTitle}>
+            {formatJPDate(selectedDate)} のイベント
+          </Text>
+          {getSelectedDateItems().length > 0 ? (
+            getSelectedDateItems().map((item) => (
               <View key={item.id} style={styles.foodItemCard}>
                 <View style={styles.foodItemInfo}>
                   <Text style={styles.foodItemName}>{item.name}</Text>
@@ -350,9 +361,11 @@ export default function CalendarScreen() {
                   )}
                 </View>
               </View>
-            ))}
-          </View>
-        )}
+            ))
+          ) : (
+            <Text style={styles.noEventsText}>イベントは何もありません</Text>
+          )}
+        </View>
       </ScrollView>
 
       <AddFoodModal
@@ -539,6 +552,10 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 12,
   },
+  noEventsText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
   foodItemCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -572,7 +589,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   expiryTag: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#FF7B53',
   },
   dateTagText: {
     fontSize: 12,
