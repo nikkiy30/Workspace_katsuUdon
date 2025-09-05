@@ -1,6 +1,7 @@
 import { UserDB } from '@/database/db/Userdb'
 import { WasteDB } from '@/database/db/Wastedb'
 import { GoogleGenAI } from '@google/genai'
+import { Image } from 'expo-image'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
@@ -56,6 +57,8 @@ export default function AiChatScreen() {
   const insets = useSafeAreaInsets()
   const [question, setQuestion] = useState('')
   const [aiAnalysis, setAiAnalysis] = useState('')
+  const [isFirstMessage, setIsFirstMessage] = useState(true)
+  // AIが初手投げか否かのBoolean
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
   const [keyboardHeight, setKeyboardHeight] = useState(0)
@@ -93,6 +96,53 @@ export default function AiChatScreen() {
     '消費できるレシピを教えて',
     '使用計画を考えて'
   ])
+
+  // AIレスポンスからJSONを抽出して評価レベルを取得する関数
+  const extractRecommendationFromJSON = (text: string): number => {
+    try {
+      // JSONブロックを探す
+      const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/)
+      if (jsonMatch) {
+        const jsonData = JSON.parse(jsonMatch[1])
+        const recommendation = jsonData.recommendation
+        
+        if (recommendation === '購入してもいい') return 3
+        if (recommendation === '条件付きでOK') return 2
+        if (recommendation === 'おすすめしない') return 1
+      }
+    } catch (error) {
+      console.log('JSON解析エラー（フォールバックします）:', error)
+    }
+
+    // JSONが見つからない場合はテキストベースで判定（フォールバック）
+    const content = text.toLowerCase()
+    if (content.includes('購入してもいい')) return 3
+    if (content.includes('条件付きでok') || content.includes('条件付きで')) return 2
+    if (content.includes('おすすめしない')) return 1
+    
+    return 2 // デフォルト
+  }
+
+  // AIレスポンスからJSONブロックを除去する関数
+  const removeJSONFromResponse = (text: string): string => {
+    // textがundefinedやnullの場合は空文字を返す
+    if (!text) return ''
+    // JSONブロック（```json...```）を除去
+    return text.replace(/```json\s*[\s\S]*?\s*```/g, '').trim()
+  }
+
+  // 推奨度に応じたSVGアイコンを返す関数
+  const getRecommendationIcon = (level: number) => {
+    if (level === 3) {
+      return require('@/assets/images/reccomend3.svg') // 購入してもいい
+    } else if (level === 2) {
+      return require('@/assets/images/reccomend2.svg') // 条件付きでOK
+    } else {
+      return require('@/assets/images/reccomend1.svg') // おすすめしない
+    }
+  }
+
+
 
   // 初回読み込み時にAI分析を実行(.onappear)
   useEffect(() => {
@@ -167,6 +217,11 @@ ${dbData.wasteRecords.length > 0 ?
 【安全ルール】
 保存方法について、不確実な情報は推測しない。
 安全が担保できない場合は、国の食品安全基準や公式サイトの参照を促す。
+
+**最後に、以下のJSON形式で評価情報を追加してください：**
+\`\`\`json
+{"recommendation": "購入してもいい" または "条件付きでOK" または "おすすめしない"}
+\`\`\`
 `
 
       const response = await genAI.models.generateContent({
@@ -206,6 +261,7 @@ ${dbData.wasteRecords.length > 0 ?
       setMessages([errorMessage])
       setAllMessages([errorMessage])
     } finally {
+      //* AI初手投げBoolは最終的にここでfalseになり2投目以降はセーフ
       setIsAnalyzing(false)
     }
   }
@@ -546,7 +602,7 @@ ${replyText}
         ) : (
           <Text style={[styles.messageText, styles.aiText]}>
             <Markdown style={markdownStyles}>
-              {message.text}
+              {removeJSONFromResponse(message.text)}
             </Markdown>
           </Text>
         )}
@@ -590,10 +646,20 @@ ${replyText}
 
         {/* AI分析結果カード */}
         <View style={styles.aiRecommendationCard}>
-          <View style={styles.aiHeader}>
+          <View style={styles.aiHeaderContainer}>
             <View style={styles.aiIcon}>
               <Text style={styles.aiIconText}>AI</Text>
             </View>
+            {!isAnalyzing && messages[0]?.text && (
+              <View style={styles.recommendationContainer}>
+                {/* <Text style={styles.recommendationLabel}>購入オススメ度</Text> */}
+                <Image 
+                  source={getRecommendationIcon(extractRecommendationFromJSON(messages[0].text))}
+                  style={styles.recommendationIcon}
+                  contentFit="fill"
+                />
+              </View>
+            )}
           </View>
           {isAnalyzing ? (
             <View style={styles.loadingContainer}>
@@ -602,7 +668,7 @@ ${replyText}
             </View>
           ) : (
             <Markdown style={markdownStyles}>
-              {messages[0]?.text || 'AI分析結果がここに表示されます'}
+              {removeJSONFromResponse(messages[0]?.text || '') || 'AI分析結果がここに表示されます'}
             </Markdown>
           )}
         </View>
@@ -830,7 +896,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e2e8f0',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingBottom: 100, 
+    paddingBottom: 70, 
   },
   inputContainerWithKeyboard: {
     paddingBottom: 350, // キーボード開閉時に重ならないようにひょいっと上がるやつの余白
@@ -896,6 +962,55 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: '#6b7280',
     opacity: 0.7,
+  },
+  starContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  starLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  star: {
+    fontSize: 16,
+    marginHorizontal: 2,
+  },
+  starFilled: {
+    color: '#3b82f6',
+  },
+  starEmpty: {
+    color: '#e2e8f0',
+  },
+  aiHeaderContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  recommendationContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+    width: '100%',
+  },
+  recommendationLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  recommendationIcon: {
+    width: "100%",
+    height: 50,
   },
 })
 
