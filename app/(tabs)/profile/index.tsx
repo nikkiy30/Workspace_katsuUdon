@@ -4,8 +4,9 @@ import { Profile } from '@/database/types'
 import { useFocusEffect } from 'expo-router'
 import { ChevronDown, CookingPot, ShoppingCart, Users } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
-import { ActionSheetIOS, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActionSheetIOS, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import Toast from 'react-native-toast-message'
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile>({
@@ -118,10 +119,27 @@ export default function ProfileScreen() {
         shopping_frequency: updatedProfile.shopping_frequency
       })
       setLoading(false)
+      
+      Toast.show({
+        type: 'info',
+        text1: '☑️　プロフィールが変更されました',
+        // text2: 'プロフィール情報を更新しました',
+        position: 'bottom',
+        visibilityTime: 2000,
+        bottomOffset: 120,
+      })
     } catch (error) {
       console.error('保存エラー:', error)
-      Alert.alert('エラー', '保存に失敗しました')
       setLoading(false)
+      
+      Toast.show({
+        type: 'error',
+        text1: '⚠ 保存に失敗しました',
+        text2: 'もう一度お試しください',
+        position: 'bottom',
+        visibilityTime: 3000,
+        bottomOffset: 120,
+      })
     }
   }
   return (
@@ -209,6 +227,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </View>
+      <Toast />
     </SafeAreaView>
   )
 }
