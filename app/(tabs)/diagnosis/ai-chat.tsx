@@ -80,6 +80,7 @@ export default function AiChatScreen() {
     foodName: params.foodName as string || '',
     amount: params.amount as string || '',
     expiryDate: params.expiryDate as string || '',
+    expiryType: params.expiryType as 'best_before' | 'use_by' || 'best_before',
     notes: params.notes as string || ''
   }
   // messageはユーザーの初手メッセージ以外を記録（チャットののUIレンダリングに使用するためのやつ)
@@ -110,7 +111,7 @@ export default function AiChatScreen() {
 【入力情報】
 食材名：${diagnosisData.foodName}
 購入予定量：${diagnosisData.amount}
-期限：${diagnosisData.expiryDate}
+${diagnosisData.expiryType === 'best_before' ? '賞味期限' : '消費期限'}：${diagnosisData.expiryDate}
 備考：${diagnosisData.notes || 'なし'}
 
 【プロフィール情報】
@@ -500,7 +501,9 @@ ${replyText}
           <View style={styles.diagnosisContent}>
             <Text style={styles.foodInfo}>食材: {diagnosisData.foodName}</Text>
             <Text style={styles.foodInfo}>内容量: {diagnosisData.amount}</Text>
-            <Text style={styles.expiryInfo}>賞味期限: {diagnosisData.expiryDate}</Text>
+            <Text style={styles.expiryInfo}>
+              {diagnosisData.expiryType === 'best_before' ? '賞味期限' : '消費期限'}: {diagnosisData.expiryDate}
+            </Text>
             {diagnosisData.notes && <Text style={styles.noteInfo}>備考: {diagnosisData.notes}</Text>}
           </View>
         </View>

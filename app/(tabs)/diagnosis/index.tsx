@@ -21,6 +21,8 @@ export default function DiagnosisScreen() {
   const [foodName, setFoodName] = useState('')
   const [amount, setAmount] = useState('')
   const [expiryDate, setExpiryDate] = useState(new Date())
+  //*(補足) best_beforeは賞味期限、use_byは消費期限（他に良い命名がなかった…）
+  const [expiryType, setExpiryType] = useState<'best_before' | 'use_by'>('best_before')
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
@@ -71,6 +73,7 @@ export default function DiagnosisScreen() {
         foodName,
         amount,
         expiryDate: expiryDate.toISOString().split('T')[0], // YYYY-MM-DD形式
+        expiryType,
         notes,
       }
 
@@ -81,6 +84,7 @@ export default function DiagnosisScreen() {
           foodName,
           amount,
           expiryDate: diagnosisData.expiryDate,
+          expiryType,
           notes: notes || ''
         }
       })
@@ -128,7 +132,34 @@ export default function DiagnosisScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>賞味期限/消費期限</Text>
+
+            <View style={styles.radioGroup}>
+              <TouchableOpacity
+                style={styles.radioOption}
+                onPress={() => setExpiryType('best_before')}
+              >
+                <View style={[styles.radioCircle, expiryType === 'best_before' && styles.radioSelected]}>
+                  {expiryType === 'best_before' && <View style={styles.radioDot} />}
+                </View>
+                <Text style={styles.radioText}>賞味期限</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.radioOption}
+                onPress={() => setExpiryType('use_by')}
+              >
+                <View style={[styles.radioCircle, expiryType === 'use_by' && styles.radioSelected]}>
+                  {expiryType === 'use_by' && <View style={styles.radioDot} />}
+                </View>
+                <Text style={styles.radioText}>消費期限</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            {/* <Text style={styles.label}>
+              {expiryType === 'best_before' ? '賞味期限' : '消費期限'}
+            </Text> */}
             <TouchableOpacity
               style={styles.dateInput}
               onPress={() => setShowDatePicker((prev) => !prev)}
@@ -261,5 +292,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 8,
     marginTop: 8,
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioSelected: {
+    backgroundColor: Colors.light.primary,
+  },
+  radioDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ffffff',
+  },
+  radioText: {
+    fontSize: 16,
+    color: Colors.light.primary,
+    fontWeight: '500',
   },
 })
