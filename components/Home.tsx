@@ -1,9 +1,10 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from '@/constants/Colors';
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
   { icon: HomeIcon, label: "ホーム" },
@@ -24,9 +25,9 @@ export const Screen = () => {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.badge}>
-          <ThemedText type="title" style={styles.badgeText}>
+          <Text style={styles.badgeText}>
             {month}月{day}日（{weekDay}）
-          </ThemedText>
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -34,17 +35,19 @@ export const Screen = () => {
           activeOpacity={0.8}
           onPress={() => router.push('/feedback')}
         >
-          <ThemedText>廃棄量、節約量の成果</ThemedText>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardLargeText}>今日、使いきれなかった食材は{'\n'}ありましたか？</Text>
+            <Text style={styles.cardSmallText}>廃棄してしまった食材を記録して、次の買い物に活かしましょう。</Text>
+            <TouchableOpacity onPress={() => router.push('/feedback')} style={styles.button} activeOpacity={0.8}>
+              <Text style={styles.buttonText}>きろくをみる</Text>
+            </TouchableOpacity>
+            <Image
+              source={require('@assets/images/watch-record.svg')}
+              style={styles.watchRecordImage}
+              contentFit="contain"
+            />
+          </View>
         </TouchableOpacity>
-
-{/* //! カレンダー画面はTabbarに移したのでホーム画面からは削除 */}
-        {/* <TouchableOpacity
-          style={styles.cardMedium}
-          activeOpacity={0.8}
-          onPress={() => router.push('/calendar' as any)}
-        >
-          <ThemedText>カレンダー</ThemedText>
-        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={styles.cardMedium}
@@ -102,15 +105,22 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: "#fff",
+    fontSize: 20,
   },
   cardLarge: {
-    height: 216,
+    height: 400,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: Colors.light.primary,
     backgroundColor: Colors.light.background,
+    padding: 20,
+  },
+  cardContent: {
+    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    minHeight: 360,
   },
   cardMedium: {
     height: 101,
@@ -161,5 +171,45 @@ const styles = StyleSheet.create({
   navButton: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  watchRecordImage: {
+    width: 240,
+    height: 210,
+    marginTop: 10,
+  },
+  cardLargeText: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: Colors.light.primary,
+    textAlign: "center",
+    lineHeight: 26,
+    marginTop: 8,
+  },
+  cardSmallText: {
+    fontSize: 8,
+    color: '#B4C5C5',
+    textAlign: "center",
+    paddingHorizontal: 16,
+    lineHeight: 18,
+    // backgroundColor: 'red',
+  },
+  button: {
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 50,
+    marginVertical: 4,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
