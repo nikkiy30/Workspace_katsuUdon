@@ -88,7 +88,11 @@ export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustom
                 {item.name}
                 <Text style={styles.quantity}> ({item.quantity})</Text>
               </Text>
-              <Text style={styles.expiryInline}>消費期限: {getDefaultExpiryDate()}</Text>
+              <Text style={styles.expiryInline}>
+                消費期限: {item.expiryDate
+                  ? new Date(item.expiryDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
+                  : getDefaultExpiryDate()}
+              </Text>
             </View>
           </View>
 

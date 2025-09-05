@@ -13,6 +13,7 @@ import {
 import { Calendar } from 'react-native-calendars';
 import { Plus, ChefHat, CircleAlert as AlertCircle, RotateCcw } from 'lucide-react-native';
 import FoodSuggestionCards from './FoodSuggestionCards';
+import { DiagnosisDB } from '@/database/db/Diagnosisdb';
 import AddFoodModal from './AddFoodModal';
 import UsageDateModal from './UsageDateModal';
 import { FoodItem, MarkedDates } from './foodTypes';
@@ -33,37 +34,28 @@ export default function CalendarScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUsageDateModal, setShowUsageDateModal] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<FoodItem | null>(null);
-  const [suggestions, setSuggestions] = useState<FoodItem[]>([
-    {
-      id: '1',
-      name: '鶏むね肉',
-      quantity: '300g',
-    },
-    {
-      id: '2',
-      name: 'ブロッコリー',
-      quantity: '1株',
-    },
-    {
-      id: '3',
-      name: '牛乳',
-      quantity: '1000ml',
-    },
-    {
-      id: '4',
-      name: '玉ねぎ',
-      quantity: '2個',
-    },
-    {
-      id: '5',
-      name: '醤油',
-      quantity: '1本',
-    },
-  ]);
+  const [suggestions, setSuggestions] = useState<FoodItem[]>([]);
 
   useEffect(() => {
     loadFoodItems();
+    loadSuggestionsFromDB();
   }, []);
+
+  const loadSuggestionsFromDB = () => {
+    try {
+      const db = new DiagnosisDB();
+      const entries = db.getRecentEntries(10);
+      const mapped: FoodItem[] = entries.map((e) => ({
+        id: String(e.id),
+        name: e.food_name,
+        quantity: e.amount || '',
+        expiryDate: e.expiry_date,
+      }));
+      setSuggestions(mapped);
+    } catch (e) {
+      console.warn('サジェストの読み込みに失敗:', e);
+    }
+  };
 
   // 選択日やデータが変わったらマーキングを最新化
   useEffect(() => {
@@ -134,11 +126,13 @@ export default function CalendarScreen() {
   };
 
   const handleExpiryAdd = async (suggestion: FoodItem) => {
-    // カテゴリーなし: デフォルトは3日後に設定
-    const today = new Date();
-    const expiryDays = 3;
-    today.setDate(today.getDate() + expiryDays);
-    const expiryDate = today.toISOString().split('T')[0];
+    // サジェストに期限があればそれを使う。なければ3日後
+    let expiryDate = suggestion.expiryDate;
+    if (!expiryDate) {
+      const today = new Date();
+      today.setDate(today.getDate() + 3);
+      expiryDate = today.toISOString().split('T')[0];
+    }
     
     const itemWithExpiry: FoodItem = {
       ...suggestion,
@@ -263,7 +257,7 @@ export default function CalendarScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
       >
         {/* 期限間近の食材アラート */}
-        {getTodaysExpiring().length > 0 && (
+        {/* {getTodaysExpiring().length > 0 && (
           <View style={styles.alertContainer}>
             <View style={styles.alertHeader}>
               <AlertCircle size={20} color="#f59e0b" />
@@ -282,7 +276,7 @@ export default function CalendarScreen() {
               </View>
             </ScrollView>
           </View>
-        )}
+        )} */}
 
         {/* AI相談履歴サジェスト */}
         <FoodSuggestionCards
