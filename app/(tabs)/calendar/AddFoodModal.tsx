@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { X, Check, Calendar, Clock } from 'lucide-react-native';
 import { FoodItem } from './foodTypes';
+import { Colors } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
@@ -99,7 +100,7 @@ export default function AddFoodModal({
             {/* 使用予定日 */}
             <View style={styles.dateInputContainer}>
               <View style={styles.dateHeader}>
-                <Clock size={20} color="#3b82f6" />
+                <Clock size={20} color={Colors.light.primary} />
                 <Text style={styles.dateLabel}>使用予定日</Text>
               </View>
               <TextInput
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#3b82f6',
+    backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -280,6 +281,6 @@ const styles = StyleSheet.create({
   presetButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#3b82f6',
+    color: Colors.light.primary,
   },
 });

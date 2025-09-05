@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { X, Check, Calendar, Clock, Zap, Plus, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { FoodItem } from './foodTypes';
+import { Colors } from '@/constants/Colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -51,7 +52,7 @@ export default function UsageDateModal({
     const options = [
       { label: '今日', days: 0, icon: Zap, color: '#ef4444' },
       { label: '明日', days: 1, icon: Clock, color: '#f59e0b' },
-      { label: '3日後', days: 3, icon: Calendar, color: '#3b82f6' },
+      { label: '3日後', days: 3, icon: Calendar, color: Colors.light.primary },
       { label: '1週間後', days: 7, icon: Calendar, color: '#10b981' },
     ];
 
@@ -224,7 +225,7 @@ export default function UsageDateModal({
                   setSelectedDate(today.toISOString().split('T')[0]);
                 }}
               >
-                <Calendar size={20} color="#3b82f6" />
+                <Calendar size={20} color={Colors.light.primary} />
                 <Text style={styles.datePickerText}>
                   {selectedDate ? 
                     new Date(selectedDate).toLocaleDateString('ja-JP', {
@@ -260,7 +261,7 @@ export default function UsageDateModal({
                 value={includeExpiry}
                 onValueChange={setIncludeExpiry}
                 trackColor={{ false: '#e5e7eb', true: '#bfdbfe' }}
-                thumbColor={includeExpiry ? '#3b82f6' : '#9ca3af'}
+                thumbColor={includeExpiry ? Colors.light.primary : '#9ca3af'}
               />
             </View>
             
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#3b82f6',
+    color: Colors.light.primary,
   },
   selectedDatesSection: {
     marginBottom: 24,
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   selectedDateText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#3b82f6',
+    color: Colors.light.primary,
     marginRight: 6,
   },
   removeDateButton: {
@@ -498,13 +499,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3b82f6',
+    backgroundColor: Colors.light.primary,
     borderRadius: 12,
     paddingVertical: 16,
     gap: 8,
     ...Platform.select({
       ios: {
-        shadowColor: '#3b82f6',
+        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -568,7 +569,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#3b82f6',
+    borderLeftColor: Colors.light.primary,
   },
   hintTitle: {
     fontSize: 16,

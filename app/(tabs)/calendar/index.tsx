@@ -17,6 +17,7 @@ import AddFoodModal from './AddFoodModal';
 import UsageDateModal from './UsageDateModal';
 import { FoodItem, MarkedDates } from './foodTypes';
 import { getFoodItems, saveFoodItem, clearFoodItems } from './foodStorage';
+import { Colors } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
@@ -77,7 +78,7 @@ export default function CalendarScreen() {
           marked[item.usageDate] = { dots: [], marked: true };
         }
         marked[item.usageDate].dots?.push({
-          color: '#3b82f6',
+          color: Colors.light.primary,
           selectedDotColor: '#ffffff',
         });
       }
@@ -106,12 +107,12 @@ export default function CalendarScreen() {
       marked[selectedDate] = {
         ...marked[selectedDate],
         selected: true,
-        selectedColor: '#3b82f6',
+        selectedColor: Colors.light.primary,
       };
     } else {
       marked[selectedDate] = {
         selected: true,
-        selectedColor: '#3b82f6',
+        selectedColor: Colors.light.primary,
         dots: [],
       };
     }
@@ -187,7 +188,7 @@ export default function CalendarScreen() {
       {/* ヘッダー */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <ChefHat size={28} color="#3b82f6" />
+          <ChefHat size={28} color={Colors.light.primary} />
           <Text style={styles.headerTitle}>食材カレンダー</Text>
         </View>
         <View style={styles.headerActions}>
@@ -263,17 +264,17 @@ export default function CalendarScreen() {
               backgroundColor: '#ffffff',
               calendarBackground: '#ffffff',
               textSectionTitleColor: '#374151',
-              selectedDayBackgroundColor: '#3b82f6',
+              selectedDayBackgroundColor: Colors.light.primary,
               selectedDayTextColor: '#ffffff',
-              todayTextColor: '#3b82f6',
+              todayTextColor: Colors.light.primary,
               dayTextColor: '#374151',
               textDisabledColor: '#d1d5db',
-              dotColor: '#3b82f6',
+              dotColor: Colors.light.primary,
               selectedDotColor: '#ffffff',
-              arrowColor: '#3b82f6',
+              arrowColor: Colors.light.primary,
               disabledArrowColor: '#d1d5db',
               monthTextColor: '#111827',
-              indicatorColor: '#3b82f6',
+              indicatorColor: Colors.light.primary,
               textDayFontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
               textMonthFontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
               textDayHeaderFontFamily:
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
     }),
   },
   addButton: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: Colors.light.primary,
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#3b82f6',
+        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -526,7 +527,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   dateTag: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: Colors.light.primary,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
