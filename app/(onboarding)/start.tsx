@@ -2,7 +2,6 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Colors } from '@/constants/Colors';
-import StepIndicator from '@components/StepIndicator';
 import { useRouter } from 'expo-router';
 
 const router = useRouter();
@@ -12,9 +11,17 @@ export default function Profile1Screen() {
     <View style={styles.container}>
 
       {/* コンテンツ部分 */}
+        <View style={styles.stepperContainer}>
+                  <View style={[styles.stepDot, styles.stepDotActive]} />
+                  <View style={styles.stepLine} />
+                  <View style={styles.stepDot} />
+                  <View style={styles.stepLine} />
+                  <View style={styles.stepDot} />
+                  <View style={styles.stepLine} />
+                  <View style={styles.stepDot} />
+                </View>
       <View style={styles.card}>
         {/* ステップのドット */}
-        <StepIndicator totalSteps={4} currentStep={1} />
 
         <Text style={styles.title}></Text>
 
@@ -28,8 +35,9 @@ export default function Profile1Screen() {
         </View>
         {/* イラスト */}
         <Image
-          source={require('@/assets/images/food.png')} // ここは用意した画像に変更
+          source={require('@/assets/images/food.svg')} // ここは用意した画像に変更
           style={styles.image}
+          contentFit='contain'
         />
 
         {/* ボタン */}
@@ -37,7 +45,7 @@ export default function Profile1Screen() {
         style={styles.button}
         onPress={() => router.push('/question1')}  // ← 遷移処理を追加
       >    
-        <Text style={styles.buttonText}>プロフィール設定を始める</Text>
+        <Text style={styles.buttonText}>プロフィール設定を始める　＞</Text>
         </TouchableOpacity>
         <Text style={styles.note}>※設定はいつでも変更できます。</Text>
       </View>
@@ -48,9 +56,9 @@ export default function Profile1Screen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f4f8',
+    backgroundColor: '#fff',
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 60,
     height: '100%',
     width: '100%',
   },
@@ -70,7 +78,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     width: '90%',
+    height: "100%",
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'space-between', // 縦方向に均等配置
     elevation: 3,
   },
   stepWrapper: {
@@ -88,38 +99,68 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
   },
   title: {
-    fontSize: 16,
+    fontSize: 24, // フォントサイズを大きく
     fontWeight: '600',
     color: Colors.light.primary,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 20,
+    marginTop: -30,
+    lineHeight: 28,
   },
   textBlock: {
-    alignItems: "flex-start", // ブロック内では左揃え
+    alignItems: "flex-start",
+    marginBottom: 10, // 下の余白を追加
   },
   subText: {
-    fontSize: 14,
-    color: '#B4C5C5',
-    marginVertical: 4
+    fontSize: 16, // フォントサイズを大きく
+    color: '#888',
+    marginVertical: 6,
   },
   image: {
-    width: 120,
-    height: 120,
-    marginVertical: 16,
+    width: "130%", // 固定サイズを使用
+    height: "30%",
+    marginBottom: 20,
   },
   button: {
     backgroundColor: Colors.light.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
-    marginVertical: 12,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 25,
+    marginTop: 0,
+    minWidth: 250, // 最小幅を設定
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
   },
   note: {
     fontSize: 12,
     color: '#888',
+    marginBottom: 70,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 50,
+    marginBottom: 0,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  stepDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#e5e7eb',
+  },
+  stepDotActive: {
+    backgroundColor: Colors.light.primary,
+  },
+  stepLine: {
+    width: 32,
+    height: 2,
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 8,
   },
 });

@@ -18,6 +18,7 @@ export class DatabaseSchema {
     try {
       this.createProfileTable();
       this.createWasteRecordsTable();
+      this.migrateWasteRecordsTable(); // マイグレーション実行
       // this.createFoodItemsTable();
       // this.createDiagnosisHistoryTable();
       console.log('全テーブルの作成が完了しました（既存の場合はスキップ）');
@@ -53,11 +54,32 @@ export class DatabaseSchema {
         food_name TEXT NOT NULL,
         throw_amount TEXT NOT NULL,
         buy_amount TEXT NOT NULL,
+        cost REAL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
     this.db.execSync(sql);
     console.log('waste_recordsテーブル準備完了');
+  }
+
+  /**
+   * waste_recordsテーブルにcostカラムを追加するマイグレーション
+   */
+  private migrateWasteRecordsTable(): void {
+    try {
+      // costカラムが存在するかチェック
+      const result = this.db.getAllSync("PRAGMA table_info(waste_records)") as any;
+      const hasCostColumn = result.some((column: any) => column.name === 'cost');
+      
+      if (!hasCostColumn) {
+        this.db.execSync('ALTER TABLE waste_records ADD COLUMN cost REAL DEFAULT 0');
+        console.log('waste_recordsテーブルにcostカラムを追加しました');
+      } else {
+        console.log('waste_recordsテーブルのcostカラムは既に存在します');
+      }
+    } catch (error) {
+      console.error('waste_recordsテーブルマイグレーションエラー:', error);
+    }
   }
 
   /**

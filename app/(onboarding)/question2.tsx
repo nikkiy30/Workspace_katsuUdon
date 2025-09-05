@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -43,19 +44,22 @@ export default function Question2() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
+        {/* 左矢印 */}
+        <TouchableOpacity 
             style={styles.backButton} 
             onPress={handleBack}
           >
-            <ArrowLeft size={24} color="#156486" />
-          </TouchableOpacity>
-          <ThemedText style={styles.progressText}>2/3</ThemedText>
-        </View>
+          <ArrowLeft size={24} color="#156486" />
+        </TouchableOpacity>
 
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressBar, { width: '66%' }]} />
+        <View style={styles.stepperContainer}>
+          <View style={[styles.stepDot, styles.stepDotActive]} />
+          <View style={styles.stepLineActive} />
+          <View style={[styles.stepDot, styles.stepDotActive]} />
+          <View style={styles.stepLineActive} />
+          <View style={[styles.stepDot, styles.stepDotActive]} />
+          <View style={styles.stepLine} />
+          <View style={styles.stepDot} />
         </View>
 
         {/* Question */}
@@ -102,7 +106,7 @@ export default function Question2() {
                 !selectedOption && styles.nextButtonTextDisabled
               ]}
             >
-              次へ
+              次へ　＞
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -112,6 +116,35 @@ export default function Question2() {
 }
 
 const styles = StyleSheet.create({
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 50,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  stepDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#e5e7eb',
+  },
+  stepLine: {
+    width: 32,
+    height: 2,
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 8,
+  },
+  stepDotActive: {
+    backgroundColor: Colors.light.primary,
+  },
+  stepLineActive: {
+    width: 32,
+    height: 2,
+    marginHorizontal: 8,
+    backgroundColor: Colors.light.primary,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fafeff',
@@ -120,74 +153,54 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
   backButton: {
     padding: 8,
-  },
-  progressText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#156486',
-  },
-  progressContainer: {
-    height: 4,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 2,
-    marginBottom: 30,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#156486',
-    borderRadius: 2,
   },
   questionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#156486',
+    color: '#20556C',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 0,
   },
   optionsContainer: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 0,
     paddingHorizontal: 20,
     justifyContent: 'center',
+    marginBottom: 40,
   },
   optionButton: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.light.base,
     borderWidth: 1.5,
-    borderColor: '#156486',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    borderColor: Colors.light.textSecondary,
+    borderRadius: 25,
+    paddingVertical: 4,
+    paddingHorizontal: 24,
+    marginBottom: 6,
     alignItems: 'center',
+    marginHorizontal: 40,
+    marginVertical: 12,
   },
   optionButtonSelected: {
-    backgroundColor: '#156486',
+    borderColor: Colors.light.primary,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
-    color: '#156486',
+    color: Colors.light.textSecondary,
   },
   optionTextSelected: {
-    color: '#fafeff',
+    color: Colors.light.primary,
   },
   buttonContainer: {
     paddingBottom: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 40,
   },
   nextButton: {
-    backgroundColor: '#156486',
-    borderRadius: 24,
-    paddingVertical: 14,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 18,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   nextButtonDisabled: {

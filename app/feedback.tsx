@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
-import { BarChart, LineChart } from 'react-native-chart-kit';
-import { TrendingDown, Beef, Carrot, Milk } from 'lucide-react-native';
+import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
 import type { WasteRecord } from '@/database/types';
 import { GoogleGenAI } from '@google/genai';
+import { TrendingDown } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BarChart } from 'react-native-chart-kit';
 import Markdown from 'react-native-markdown-display';
-import { Colors } from '@/constants/Colors';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -289,6 +289,25 @@ export default function FeedbackScreen() {
     }, 100);
     setSelectedCardIndex(monthlyData.length - 1);
   }, [monthlyData]);
+
+  // // 画面にフォーカスが当たるたびにデータを更新
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     if (monthlyData.length === 0) {
+  //       setMonthlyData(buildRecentMonthlyCards(new Date()));
+  //     }
+      
+  //     // 廃棄データを再集計
+  //     try {
+  //       const wasteDB = new WasteDB();
+  //       const records = wasteDB.getWasteRecords();
+  //       const updated = aggregateWasteForCards(monthlyData, records);
+  //       setMonthlyData(updated);
+  //     } catch (e) {
+  //       console.error('フィードバック画面データ更新エラー:', e);
+  //     }
+  //   }, [])
+  // );
 
   /**
    * 月次廃棄量カードコンポーネント
