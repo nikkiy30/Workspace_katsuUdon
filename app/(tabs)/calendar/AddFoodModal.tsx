@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
   Platform,
   Dimensions,
 } from 'react-native';
@@ -43,6 +44,10 @@ export default function AddFoodModal({
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [usageAmountInput, setUsageAmountInput] = useState('');
   const [selectedUsages, setSelectedUsages] = useState<Record<string, string>>({});
+
+  // 消費期限ピッカー
+  const [showExpiryDatePicker, setShowExpiryDatePicker] = useState(false);
+  const [expiryPickerDate, setExpiryPickerDate] = useState<Date>(new Date());
 
   const formatLocalYMD = (d: Date) => {
     const y = d.getFullYear();
@@ -88,6 +93,32 @@ export default function AddFoodModal({
     setShowUsageDatePicker(Platform.OS === 'ios');
     setUsagePickerDate(current);
     setSelectedDate(formatLocalYMD(current));
+  };
+
+  const handleExpiryDateChange = (_event: any, picked?: Date) => {
+    const current = picked || expiryPickerDate;
+    setShowExpiryDatePicker(Platform.OS === 'ios');
+    setExpiryPickerDate(current);
+    setExpiryDate(formatLocalYMD(current));
+  };
+
+  // ピッカーの相互排他制御
+  const toggleUsagePicker = () => {
+    if (showUsageDatePicker) {
+      setShowUsageDatePicker(false);
+    } else {
+      setShowExpiryDatePicker(false);
+      setShowUsageDatePicker(true);
+    }
+  };
+
+  const toggleExpiryPicker = () => {
+    if (showExpiryDatePicker) {
+      setShowExpiryDatePicker(false);
+    } else {
+      setShowUsageDatePicker(false);
+      setShowExpiryDatePicker(true);
+    }
   };
 
   const handleSave = async () => {
@@ -147,7 +178,17 @@ export default function AddFoodModal({
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+          style={{ flex: 1 }}
+        >
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* 食材名入力 */}
           <View style={styles.inputSection}>
             <Text style={styles.label}>食材名 *</Text>
@@ -176,15 +217,13 @@ export default function AddFoodModal({
           {/* 使用予定日（UsageDateModalのUIを流用） */}
           {/* カスタム日付選択 */}
           <View style={styles.customDateSection}>
-            <Text style={styles.sectionTitle}>カスタム日付</Text>
-            <Text style={styles.sectionSubtitle}>
-              特定の日付を指定したい場合
-            </Text>
+            <Text style={styles.sectionTitle}>使用予定を追加</Text>
+
             
           <View style={styles.customDateContainer}>
             <TouchableOpacity
               style={styles.datePickerButton}
-              onPress={() => setShowUsageDatePicker((prev) => !prev)}
+              onPress={toggleUsagePicker}
             >
               <Calendar size={20} color={Colors.light.primary} />
               <Text style={styles.datePickerText}>
@@ -260,7 +299,43 @@ export default function AddFoodModal({
             </View>
           )}
 
+          {/* 消費期限の設定 */}
+          {/* <View style={styles.expirySection}> */}
+            <Text style={styles.sectionTitle}>消費期限</Text>
+            <Text style={styles.sectionSubtitle}>この食材の消費期限を設定</Text>
+
+            <View style={styles.customDateContainer}>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={toggleExpiryPicker}
+              >
+                <Calendar size={20} color={Colors.light.primary} />
+                <Text style={styles.datePickerText}>
+                  {expiryDate
+                    ? new Date(expiryDate).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : '日付を選択'}
+                </Text>
+              </TouchableOpacity>
+
+              {showExpiryDatePicker && (
+                <DateTimePicker
+                  value={expiryPickerDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                  onChange={handleExpiryDateChange}
+                  themeVariant="light"
+                  style={Platform.OS === 'ios' ? styles.datePickerIOS : {}}
+                  locale={deviceLocale.startsWith('ja') ? 'ja' : 'ja-JP'}
+                />
+              )}
+            </View>
+          {/* </View> */}
         </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -491,5 +566,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 20,
+  },
+  expirySection: {
+    marginBottom: 32,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
 });

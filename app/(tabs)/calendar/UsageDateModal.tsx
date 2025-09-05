@@ -247,7 +247,7 @@ export default function UsageDateModal({
 
           {/* カスタム日付選択 */}
           <View style={styles.customDateSection}>
-            <Text style={styles.sectionTitle}>カスタム日付</Text>
+            <Text style={styles.sectionTitle}>使用予定を追加</Text>
             <Text style={styles.sectionSubtitle}>
               特定の日付を指定したい場合
             </Text>
