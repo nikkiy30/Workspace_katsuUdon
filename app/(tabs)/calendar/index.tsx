@@ -178,15 +178,16 @@ export default function CalendarScreen() {
     expiryDate?: string,
     usageAmount?: string,
   ) => {
-    const itemWithDate: FoodItem = {
-      ...item,
+    // includeExpiryがOFFのときは、サジェストに既存のexpiryDateがあっても保存しない
+    const payload: Omit<FoodItem, 'id'> = {
+      name: item.name,
+      quantity: item.quantity,
       usageDate,
-      ...(includeExpiry && expiryDate && { expiryDate }),
+      ...(includeExpiry && expiryDate ? { expiryDate } : {}),
       ...(usageAmount ? { usageAmount } : {}),
-      id: Date.now().toString(),
     };
-    
-    await handleAddFood(itemWithDate);
+
+    await handleAddFood(payload);
   };
 
   const getSelectedDateItems = () => {
