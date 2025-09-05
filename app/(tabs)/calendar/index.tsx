@@ -1,508 +1,512 @@
-/**
- * メインのカレンダー画面
- * 初心者向け：カレンダー表示と基本操作の実装
- */
-
-import AddPlanModal from './AddPlanModal';
-import { loadCookingPlans } from './storage';
-import { CalendarMarkings, CookingPlan } from './types';
-import { formatDate, formatTime12Hour, getTodayString } from './utils';
-import { Stack } from 'expo-router';
-import { ChefHat, Clock, Plus, Users } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Plus, ChefHat, CircleAlert as AlertCircle } from 'lucide-react-native';
+import FoodSuggestionCards from './FoodSuggestionCards';
+import AddFoodModal from './AddFoodModal';
+import UsageDateModal from './UsageDateModal';
+import { FoodItem, MarkedDates } from './foodTypes';
+import { getFoodItems, saveFoodItem } from './foodStorage';
 
+const { width } = Dimensions.get('window');
 
-/**
- * カレンダー画面
- * 料理計画を視覚的に表示し、日付選択機能を提供
- */
 export default function CalendarScreen() {
-  // ステート管理：初心者向け解説
-  const [selectedDate, setSelectedDate] = useState<string>(getTodayString()); // 選択された日付
-  const [cookingPlans, setCookingPlans] = useState<CookingPlan[]>([]); // 料理計画データ
-  const [calendarMarkings, setCalendarMarkings] = useState<CalendarMarkings>({}); // カレンダーマーク
-  const [selectedDatePlans, setSelectedDatePlans] = useState<CookingPlan[]>([]); // 選択日の計画
-  const [loading, setLoading] = useState<boolean>(true); // ローディング状態
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // モーダルの表示状態
-  const [editingPlan, setEditingPlan] = useState<CookingPlan | undefined>(undefined); // 編集対象の計画
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split('T')[0]
+  );
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [markedDates, setMarkedDates] = useState<MarkedDates>({});
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showUsageDateModal, setShowUsageDateModal] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<FoodItem | null>(null);
+  const [suggestions] = useState<FoodItem[]>([
+    {
+      id: '1',
+      name: '鶏むね肉',
+      quantity: '300g',
+      category: '肉類',
+    },
+    {
+      id: '2',
+      name: 'ブロッコリー',
+      quantity: '1株',
+      category: '野菜',
+    },
+    {
+      id: '3',
+      name: '牛乳',
+      quantity: '1000ml',
+      category: '乳製品',
+    },
+    {
+      id: '4',
+      name: '玉ねぎ',
+      quantity: '2個',
+      category: '野菜',
+    },
+    {
+      id: '5',
+      name: '醤油',
+      quantity: '1本',
+      category: '調味料',
+    },
+  ]);
 
-  /**
-   * コンポーネントがマウントされた時の初期化処理
-   */
   useEffect(() => {
-    loadInitialData();
+    loadFoodItems();
   }, []);
 
-  /**
-   * 選択された日付が変更された時の処理
-   */
-  useEffect(() => {
-    updateSelectedDatePlans();
-  }, [selectedDate, cookingPlans]);
-
-  /**
-   * 初期データの読み込み
-   */
-  const loadInitialData = async () => {
-    try {
-      setLoading(true);
-      const plans = await loadCookingPlans();
-      setCookingPlans(plans);
-      generateCalendarMarkings(plans);
-      console.log(`${plans.length}件の料理計画を読み込みました`);
-    } catch (error) {
-      console.error('初期データの読み込みに失敗:', error);
-      Alert.alert('エラー', 'データの読み込みに失敗しました');
-    } finally {
-      setLoading(false);
-    }
+  const loadFoodItems = async () => {
+    const items = await getFoodItems();
+    setFoodItems(items);
+    updateMarkedDates(items);
   };
 
-  /**
-   * カレンダーのマーキング情報を生成
-   * @param plans - 料理計画の配列
-   */
-  const generateCalendarMarkings = (plans: CookingPlan[]) => {
-    const markings: CalendarMarkings = {};
-    const today = getTodayString();
+  const updateMarkedDates = (items: FoodItem[]) => {
+    const marked: MarkedDates = {};
 
-    // 今日の日付をマーク
-    markings[today] = {
-      selected: selectedDate === today,
-      selectedColor: '#156486',
-      marked: false,
-    };
+    items.forEach((item) => {
+      // 使用予定日のマーキング
+      if (item.usageDate) {
+        if (!marked[item.usageDate]) {
+          marked[item.usageDate] = { dots: [], marked: true };
+        }
+        marked[item.usageDate].dots?.push({
+          color: '#3b82f6',
+          selectedDotColor: '#ffffff',
+        });
+      }
 
-    // 料理計画がある日付をマーク
-    plans.forEach(plan => {
-      const dateKey = plan.date;
-      if (markings[dateKey]) {
-        // 既存のマークに追加
-        markings[dateKey] = {
-          ...markings[dateKey],
-          marked: true,
-          dotColor: getCategoryColor(plan.category),
-        };
-      } else {
-        // 新しいマークを作成
-        markings[dateKey] = {
-          selected: selectedDate === dateKey,
-          selectedColor: selectedDate === dateKey ? '#156486' : undefined,
-          marked: true,
-          dotColor: getCategoryColor(plan.category),
-        };
+      // 消費期限のマーキング
+      if (item.expiryDate) {
+        const today = new Date().toISOString().split('T')[0];
+        const isExpired = item.expiryDate < today;
+        const isExpiringSoon =
+          new Date(item.expiryDate).getTime() - new Date().getTime() <=
+          2 * 24 * 60 * 60 * 1000;
+
+        if (!marked[item.expiryDate]) {
+          marked[item.expiryDate] = { dots: [], marked: true };
+        }
+
+        marked[item.expiryDate].dots?.push({
+          color: isExpired ? '#ef4444' : isExpiringSoon ? '#f59e0b' : '#10b981',
+          selectedDotColor: '#ffffff',
+        });
       }
     });
 
-    setCalendarMarkings(markings);
-  };
-
-  /**
-   * 料理カテゴリーに応じた色を取得
-   * @param category - 料理カテゴリー
-   * @returns 対応する色
-   */
-  const getCategoryColor = (category: CookingPlan['category']): string => {
-    const colors = {
-      breakfast: '#FF9800', // オレンジ（朝食）
-      lunch: '#2196F3',     // 青（昼食）
-      dinner: '#9C27B0',    // 紫（夕食）
-      snack: '#4CAF50',     // 緑（おやつ）
-    };
-    return colors[category] || '#757575';
-  };
-
-  /**
-   * 選択された日付の料理計画を更新
-   */
-  const updateSelectedDatePlans = () => {
-    const plansForDate = cookingPlans.filter(plan => plan.date === selectedDate);
-    setSelectedDatePlans(plansForDate.sort((a, b) => {
-      // 時間がある場合は時間順、ない場合はカテゴリ順でソート
-      if (a.time && b.time) {
-        return a.time.localeCompare(b.time);
-      }
-      if (a.time) return -1;
-      if (b.time) return 1;
-      return a.category.localeCompare(b.category);
-    }));
-  };
-
-  /**
-   * 日付が選択された時の処理
-   * @param day - 選択された日付情報
-   */
-  const handleDateSelect = (day: any) => {
-    const dateString = day.dateString;
-    setSelectedDate(dateString);
-    console.log(`日付が選択されました: ${dateString}`);
-  };
-
-  /**
-   * 料理計画項目のレンダリング
-   * @param plan - 料理計画
-   */
-  const renderPlanItem = (plan: CookingPlan) => {
-    const categoryIcons = {
-      breakfast: '🌅',
-      lunch: '☀️',
-      dinner: '🌙',
-      snack: '🍪',
-    };
-
-    return (
-      <TouchableOpacity
-        key={plan.id}
-        style={[styles.planItem, { borderLeftColor: getCategoryColor(plan.category) }]}
-        onPress={() => handlePlanPress(plan)}
-      >
-        <View style={styles.planHeader}>
-          <Text style={styles.planCategory}>
-            {categoryIcons[plan.category]} {plan.category}
-          </Text>
-          {plan.time && (
-            <View style={styles.timeContainer}>
-              <Clock size={16} color="#666" />
-              <Text style={styles.planTime}>{formatTime12Hour(plan.time)}</Text>
-            </View>
-          )}
-        </View>
-        
-        <Text style={styles.planTitle}>{plan.title}</Text>
-        
-        {plan.description && (
-          <Text style={styles.planDescription} numberOfLines={2}>
-            {plan.description}
-          </Text>
-        )}
-
-        <View style={styles.planDetails}>
-          {plan.prepTime && (
-            <View style={styles.detailItem}>
-              <ChefHat size={14} color="#666" />
-              <Text style={styles.detailText}>{plan.prepTime}分</Text>
-            </View>
-          )}
-          {plan.servings && (
-            <View style={styles.detailItem}>
-              <Users size={14} color="#666" />
-              <Text style={styles.detailText}>{plan.servings}人分</Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  /**
-   * 料理計画項目がタップされた時の処理
-   * @param plan - タップされた料理計画
-   */
-  const handlePlanPress = (plan: CookingPlan) => {
-    Alert.alert(
-      plan.title,
-      plan.description || '詳細情報はありません',
-      [
-        { text: 'キャンセル', style: 'cancel' },
-        { text: '編集', onPress: () => handleEditPlan(plan) },
-      ]
-    );
-  };
-
-  /**
-   * 料理計画の編集を開始
-   * @param plan - 編集する料理計画
-   */
-  const handleEditPlan = (plan: CookingPlan) => {
-    setEditingPlan(plan);
-    setIsModalVisible(true);
-  };
-
-  /**
-   * 料理計画が保存された時の処理
-   * @param plan - 保存された料理計画
-   */
-  const handlePlanSaved = async (plan: CookingPlan) => {
-    try {
-      // 料理計画リストを更新
-      const updatedPlans = await loadCookingPlans();
-      setCookingPlans(updatedPlans);
-      
-      // カレンダーのマーキングを更新
-      generateCalendarMarkings(updatedPlans);
-      
-      // 選択日の計画を更新
-      updateSelectedDatePlans();
-      
-      console.log('料理計画が更新されました:', plan.title);
-    } catch (error) {
-      console.error('料理計画の更新に失敗:', error);
-      Alert.alert('エラー', '料理計画の更新に失敗しました');
+    // 選択された日付のハイライト
+    if (marked[selectedDate]) {
+      marked[selectedDate] = {
+        ...marked[selectedDate],
+        selected: true,
+        selectedColor: '#3b82f6',
+      };
+    } else {
+      marked[selectedDate] = {
+        selected: true,
+        selectedColor: '#3b82f6',
+        dots: [],
+      };
     }
+
+    setMarkedDates(marked);
   };
 
-  /**
-   * モーダルを閉じる処理
-   */
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
-    setEditingPlan(undefined);
+  const handleAddFood = async (item: Omit<FoodItem, 'id'>) => {
+    const newItem: FoodItem = {
+      ...item,
+      id: Date.now().toString(),
+    };
+
+    const updatedItems = [...foodItems, newItem];
+    await saveFoodItem(newItem);
+    setFoodItems(updatedItems);
+    updateMarkedDates(updatedItems);
+    setShowAddModal(false);
   };
 
-  /**
-   * 新規計画追加ボタンがタップされた時の処理
-   */
-  const handleAddPlan = () => {
-    setEditingPlan(undefined);
-    setIsModalVisible(true);
+  const handleExpiryAdd = async (suggestion: FoodItem) => {
+    // カテゴリーに応じたデフォルト消費期限を設定
+    const getDefaultExpiryDays = (category: string) => {
+      switch (category) {
+        case '肉類': return 2;
+        case '野菜': return 5;
+        case '乳製品': return 7;
+        case '調味料': return 365;
+        default: return 3;
+      }
+    };
+    
+    const today = new Date();
+    const expiryDays = getDefaultExpiryDays(suggestion.category);
+    today.setDate(today.getDate() + expiryDays);
+    const expiryDate = today.toISOString().split('T')[0];
+    
+    const itemWithExpiry: FoodItem = {
+      ...suggestion,
+      expiryDate,
+      id: Date.now().toString(),
+    };
+    
+    await handleAddFood(itemWithExpiry);
   };
 
-  // ローディング中の表示
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>カレンダーを読み込み中...</Text>
-      </View>
+  const handleCustomAdd = (suggestion: FoodItem) => {
+    setSelectedSuggestion(suggestion);
+    setShowUsageDateModal(true);
+  };
+
+  const handleUsageDateSave = async (item: FoodItem, usageDate: string, includeExpiry?: boolean, expiryDate?: string) => {
+    const itemWithDate: FoodItem = {
+      ...item,
+      usageDate,
+      ...(includeExpiry && expiryDate && { expiryDate }),
+      id: Date.now().toString(),
+    };
+    
+    await handleAddFood(itemWithDate);
+  };
+
+  const getSelectedDateItems = () => {
+    return foodItems.filter(
+      (item) =>
+        item.usageDate === selectedDate || item.expiryDate === selectedDate
     );
-  }
+  };
+
+  const getTodaysExpiring = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return foodItems.filter((item) => {
+      if (!item.expiryDate) return false;
+      const daysDiff =
+        (new Date(item.expiryDate).getTime() - new Date(today).getTime()) /
+        (1000 * 60 * 60 * 24);
+      return daysDiff <= 2 && daysDiff >= 0;
+    });
+  };
 
   return (
-    <>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-        <Stack.Screen options={{ title: "カレンダー" }} />
-        <ScrollView style={styles.container}>
-            {/* カレンダー表示部分 */}
-            <View style={styles.calendarContainer}>
-            <Calendar
-                current={selectedDate}
-                onDayPress={handleDateSelect}
-                markedDates={calendarMarkings}
-                monthFormat={'yyyy年 MM月'}
-                theme={{
-                backgroundColor: '#ffffff',
-                calendarBackground: '#ffffff',
-                textSectionTitleColor: '#b6c1cd',
-                            selectedDayBackgroundColor: '#156486',
-                selectedDayTextColor: '#ffffff',
-                todayTextColor: '#156486',
-                dayTextColor: '#2d4150',
-                textDisabledColor: '#d9e1e8',
-                dotColor: '#156486',
-                selectedDotColor: '#ffffff',
-                arrowColor: '#156486',
-                disabledArrowColor: '#d9e1e8',
-                monthTextColor: '#2d4150',
-                indicatorColor: '#156486',
-                textDayFontWeight: '300',
-                textMonthFontWeight: 'bold',
-                textDayHeaderFontWeight: '300',
-                textDayFontSize: 16,
-                textMonthFontSize: 18,
-                textDayHeaderFontSize: 13
-                }}
-            />
-            </View>
+    <SafeAreaView style={styles.container}>
+      {/* ヘッダー */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <ChefHat size={28} color="#3b82f6" />
+          <Text style={styles.headerTitle}>食材カレンダー</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowAddModal(true)}
+        >
+          <Plus size={24} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
 
-            {/* 選択された日付の情報表示 */}
-            <View style={styles.selectedDateContainer}>
-            <View style={styles.selectedDateHeader}>
-                <Text style={styles.selectedDateText}>
-                {formatDate(selectedDate, 'M月d日 (eee)')}の予定
-                </Text>
-                <TouchableOpacity style={styles.addButton} onPress={handleAddPlan}>
-                <Plus size={20} color="#fff" />
-                <Text style={styles.addButtonText}>追加</Text>
-                </TouchableOpacity>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* 期限間近の食材アラート */}
+        {getTodaysExpiring().length > 0 && (
+          <View style={styles.alertContainer}>
+            <View style={styles.alertHeader}>
+              <AlertCircle size={20} color="#f59e0b" />
+              <Text style={styles.alertTitle}>
+                期限間近の食材（{getTodaysExpiring().length}件）
+              </Text>
             </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.alertItems}>
+                {getTodaysExpiring().map((item) => (
+                  <View key={item.id} style={styles.alertItem}>
+                    <Text style={styles.alertItemName}>{item.name}</Text>
+                    <Text style={styles.alertItemDate}>{item.expiryDate}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
 
-            {/* 選択日の料理計画一覧 */}
-            {selectedDatePlans.length > 0 ? (
-                <View style={styles.plansContainer}>
-                {selectedDatePlans.map(renderPlanItem)}
-                </View>
-            ) : (
-                <View style={styles.noPlansContainer}>
-                <Text style={styles.noPlansText}>この日の料理計画はありません</Text>
-                <TouchableOpacity style={styles.addPlanButton} onPress={handleAddPlan}>
-                    <ChefHat size={24} color="#156486" />
-                    <Text style={styles.addPlanText}>料理計画を追加</Text>
-                </TouchableOpacity>
-                </View>
-            )}
-            </View>
-        </ScrollView>
-
-        {/* 料理計画追加・編集モーダル */}
-        <AddPlanModal
-            isVisible={isModalVisible}
-            onClose={handleCloseModal}
-            onSave={handlePlanSaved}
-            selectedDate={selectedDate}
-            editingPlan={editingPlan}
+        {/* AI相談履歴サジェスト */}
+        <FoodSuggestionCards
+          suggestions={suggestions}
+          onExpiryAdd={handleExpiryAdd}
+          onCustomAdd={handleCustomAdd}
         />
-      </SafeAreaView>
-    </>
+
+        {/* カレンダー */}
+        <View style={styles.calendarContainer}>
+          <Calendar
+            current={selectedDate}
+            onDayPress={(day) => {
+              setSelectedDate(day.dateString);
+              updateMarkedDates(foodItems);
+            }}
+            markingType={'multi-dot'}
+            markedDates={markedDates}
+            theme={{
+              backgroundColor: '#ffffff',
+              calendarBackground: '#ffffff',
+              textSectionTitleColor: '#374151',
+              selectedDayBackgroundColor: '#3b82f6',
+              selectedDayTextColor: '#ffffff',
+              todayTextColor: '#3b82f6',
+              dayTextColor: '#374151',
+              textDisabledColor: '#d1d5db',
+              dotColor: '#3b82f6',
+              selectedDotColor: '#ffffff',
+              arrowColor: '#3b82f6',
+              disabledArrowColor: '#d1d5db',
+              monthTextColor: '#111827',
+              indicatorColor: '#3b82f6',
+              textDayFontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+              textMonthFontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+              textDayHeaderFontFamily:
+                Platform.OS === 'ios' ? 'System' : 'Roboto',
+              textDayFontSize: 16,
+              textMonthFontSize: 20,
+              textDayHeaderFontSize: 14,
+            }}
+            style={styles.calendar}
+          />
+        </View>
+
+        {/* 選択日の食材リスト */}
+        {getSelectedDateItems().length > 0 && (
+          <View style={styles.selectedDateContainer}>
+            <Text style={styles.selectedDateTitle}>
+              {selectedDate} の食材
+            </Text>
+            {getSelectedDateItems().map((item) => (
+              <View key={item.id} style={styles.foodItemCard}>
+                <View style={styles.foodItemInfo}>
+                  <Text style={styles.foodItemName}>{item.name}</Text>
+                  <Text style={styles.foodItemQuantity}>{item.quantity}</Text>
+                </View>
+                <View style={styles.foodItemDates}>
+                  {item.usageDate === selectedDate && (
+                    <View style={styles.dateTag}>
+                      <Text style={styles.dateTagText}>使用予定</Text>
+                    </View>
+                  )}
+                  {item.expiryDate === selectedDate && (
+                    <View style={[styles.dateTag, styles.expiryTag]}>
+                      <Text style={styles.dateTagText}>消費期限</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      <AddFoodModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddFood}
+        selectedDate={selectedDate}
+      />
+      
+      <UsageDateModal
+        visible={showUsageDateModal}
+        onClose={() => {
+          setShowUsageDateModal(false);
+          setSelectedSuggestion(null);
+        }}
+        onSave={handleUsageDateSave}
+        selectedItem={selectedSuggestion}
+      />
+    </SafeAreaView>
   );
 }
 
-/**
- * スタイル定義
- * 初心者向け：各要素の見た目を定義
- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f8fafc',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  calendarContainer: {
-    backgroundColor: '#fff',
-    margin: 16,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-  },
-  selectedDateContainer: {
-    margin: 16,
-  },
-  selectedDateHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
-  selectedDateText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2d4150',
-  },
-  addButton: {
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#156486',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
   },
-  addButtonText: {
-    color: '#fff',
-    marginLeft: 4,
-    fontWeight: '600',
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+    marginLeft: 12,
   },
-  plansContainer: {
-    gap: 12,
+  addButton: {
+    backgroundColor: '#3b82f6',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#3b82f6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
-  planItem: {
-    backgroundColor: '#fff',
+  content: {
+    flex: 1,
+  },
+  alertContainer: {
+    margin: 16,
+    backgroundColor: '#fef3cd',
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    borderLeftColor: '#f59e0b',
   },
-  planHeader: {
+  alertHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  alertTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#92400e',
+    marginLeft: 8,
+  },
+  alertItems: {
+    flexDirection: 'row',
+  },
+  alertItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 8,
+    minWidth: 120,
+  },
+  alertItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  alertItemDate: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  calendarContainer: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    borderRadius: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  calendar: {
+    borderRadius: 16,
+    paddingBottom: 16,
+  },
+  selectedDateContainer: {
+    margin: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  selectedDateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  foodItemCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 8,
   },
-  planCategory: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
+  foodItemInfo: {
+    flex: 1,
   },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  planTime: {
-    fontSize: 12,
-    color: '#666',
-  },
-  planTitle: {
+  foodItemName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2d4150',
-    marginBottom: 4,
-  },
-  planDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  planDetails: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  detailText: {
-    fontSize: 12,
-    color: '#666',
-  },
-  noPlansContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 32,
-    alignItems: 'center',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  noPlansText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  addPlanButton: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  addPlanText: {
-    fontSize: 14,
-    color: '#156486',
     fontWeight: '600',
+    color: '#374151',
+  },
+  foodItemQuantity: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  foodItemDates: {
+    flexDirection: 'row',
+  },
+  dateTag: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 4,
+  },
+  expiryTag: {
+    backgroundColor: '#f59e0b',
+  },
+  dateTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#ffffff',
   },
 });
