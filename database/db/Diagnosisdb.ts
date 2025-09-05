@@ -62,5 +62,18 @@ export class DiagnosisDB {
       return [];
     }
   }
-}
 
+  /**
+   * エントリを削除
+   */
+  public deleteEntry(id: number): boolean {
+    try {
+      const sql = 'DELETE FROM diagnosis_entries WHERE id = ?';
+      this.db.runSync(sql, [id]);
+      return true;
+    } catch (e) {
+      console.error('diagnosis_entries 削除エラー:', e);
+      return false;
+    }
+  }
+}

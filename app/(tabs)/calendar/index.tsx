@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { useFocusEffect } from '@react-navigation/native';
 import { Plus, ChefHat, CircleAlert as AlertCircle, RotateCcw } from 'lucide-react-native';
 import FoodSuggestionCards from './FoodSuggestionCards';
 import { DiagnosisDB } from '@/database/db/Diagnosisdb';
@@ -40,6 +41,13 @@ export default function CalendarScreen() {
     loadFoodItems();
     loadSuggestionsFromDB();
   }, []);
+
+  // 画面に戻ってきたタイミングでサジェストを再読込
+  useFocusEffect(
+    useCallback(() => {
+      loadSuggestionsFromDB();
+    }, [])
+  );
 
   const loadSuggestionsFromDB = () => {
     try {
@@ -149,7 +157,18 @@ export default function CalendarScreen() {
   };
 
   const handleRemoveSuggestion = (id: string) => {
-    setSuggestions(prev => prev.filter(s => s.id !== id));
+    try {
+      const db = new DiagnosisDB();
+      const ok = db.deleteEntry(Number(id));
+      if (!ok) {
+        console.warn('DBからのサジェスト削除に失敗しました:', id);
+      }
+    } catch (e) {
+      console.warn('サジェスト削除時エラー:', e);
+    } finally {
+      // UIからは確実に除去（楽観更新）
+      setSuggestions(prev => prev.filter(s => s.id !== id));
+    }
   };
 
   const handleUsageDateSave = async (
@@ -240,7 +259,7 @@ export default function CalendarScreen() {
               ]);
             }}
           >
-            <RotateCcw size={20} color="#ffffff" />
+            <RotateCcw size={20} color={Colors.light.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.addButton}
@@ -439,7 +458,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   resetButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: '#ffff',
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -448,10 +467,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     ...Platform.select({
       ios: {
-        shadowColor: '#ef4444',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
+ 
       },
       android: {
         elevation: 6,
