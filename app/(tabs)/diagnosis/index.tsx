@@ -156,7 +156,7 @@ export default function DiagnosisScreen() {
               style={styles.notesInput}
               value={notes}
               onChangeText={setNotes}
-              placeholder="備考"
+              placeholder={`作る予定の料理や，一緒に購入予定の\n食材を入力すると効果的です．`}
               placeholderTextColor="#a0a0a0"
               multiline
               numberOfLines={6}
