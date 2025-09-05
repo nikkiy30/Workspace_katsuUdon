@@ -2,11 +2,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
-import { WasteRecordInput } from '@/database/types';
+import { GoogleGenAI } from '@google/genai';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
 import {
   Alert,
   SafeAreaView,
@@ -23,7 +24,12 @@ interface InputField {
   value: string;
 }
 
+// Gemini APIの設定
+const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+const genAI = new GoogleGenAI({ apiKey: apiKey });
+
 export default function WasteScreen() {
+  const scrollViewRef = useRef<ScrollView>(null);
   const [inputFields, setInputFields] = useState<InputField[]>([
     {
       id: 'food-item',
@@ -40,12 +46,19 @@ export default function WasteScreen() {
     {
       id: 'purchase-amount',
       label: '購入量、金額',
-      placeholder: '例)300g',
+      placeholder: '例)500円',
       value: '',
     },
   ]);
 
   const [notes, setNotes] = useState('');
+
+  const handleNotesFocus = () => {
+    // 備考フィールドにフォーカスした時、適切な位置までスクロール
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100); // キーボードが表示される時間を考慮
+  };
 
   const updateInputField = (id: string, value: string) => {
     setInputFields(prev =>
@@ -55,7 +68,41 @@ export default function WasteScreen() {
     );
   };
 
-  const handleSave = () => {
+  const generateAISuggestion = async (foodName: string, throwAmount: string, buyAmount: string): Promise<number> => {
+    if (!apiKey) {
+      console.warn('Gemini APIキーが設定されていません');
+      return 0;
+    }
+
+    try {
+      const prompt = `以下の情報をもとに廃棄コストを計算してください（出力は数字だけにしてください）。\n\n廃棄する食品: ${foodName}\n廃棄量: ${throwAmount}\n購入量・金額: ${buyAmount}\n例：100円なら100とだけ答えてください。`;
+
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: prompt,
+      });
+
+      const suggestion = response.text ?? '0';
+      // AIの応答から数値を抽出して整数に変換
+      const numericValue = parseInt(suggestion.replace(/[^\d]/g, ''), 10);
+      return isNaN(numericValue) ? 0 : numericValue;
+    } catch (error) {
+      console.error('AI改善提案生成エラー:', error);
+      return 0;
+    }
+  };
+
+  // useEffectの修正（非同期処理を内部で実行）
+  useEffect(() => {
+    const initializeData = async () => {
+      // 必要に応じて初期化処理をここに記述
+      console.log('WasteScreen initialized');
+    };
+    
+    initializeData();
+  }, []);
+
+  const handleSave = async () => {
     // 入力値を取得
     const foodName = inputFields.find(field => field.id === 'food-item')?.value || '';
     const throwAmount = inputFields.find(field => field.id === 'disposal-amount')?.value || '';
@@ -77,23 +124,27 @@ export default function WasteScreen() {
 
     try {
       const wasteDB = new WasteDB();
-      const wasteRecord: WasteRecordInput = {
+
+      // geminiでcostを計算させる（整数で取得）
+      const cost = await generateAISuggestion(foodName, throwAmount, buyAmount);
+
+      const wasteRecord = {
         food_name: foodName.trim(),
         throw_amount: throwAmount.trim(),
         buy_amount: buyAmount.trim(),
+        cost: cost,
         created_at: new Date().toISOString(),
       };
 
-      //! ここで記録する
+      // 廃棄記録を保存
       wasteDB.addWasteRecord(wasteRecord);
       
-      // wasteDB.logLatestWasteRecord;
-      Alert.alert('保存完了', '廃棄記録を保存しました', [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
-      ]);
+      console.log('Redirecting to home with toast params');
+      // Alertを削除し、直接Home画面にリダイレクト（Toastメッセージのパラメータ付き）
+      router.replace({
+        pathname: '/(tabs)',
+        params: { showToast: 'true', toastIcon: 'check-circle', toastMessage: '廃棄を記録しました' }
+      });
     } catch (error) {
       console.error('廃棄記録保存エラー:', error);
       Alert.alert('エラー', '保存に失敗しました');
@@ -105,7 +156,13 @@ export default function WasteScreen() {
       <StatusBar style="dark" backgroundColor="#fafeff" />
       
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
+        >
           <ThemedView style={styles.content}>
             {/* Header */}
             <ThemedView style={styles.header}>
@@ -113,14 +170,9 @@ export default function WasteScreen() {
                 <ArrowLeft size={24} color={Colors.light.primary} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <ThemedText style={styles.saveButtonText}>保存する</ThemedText>
+                <ThemedText style={styles.saveButtonText}>保存する  ＞ </ThemedText>
               </TouchableOpacity>
-              {/* 
-              TODO: 右矢印を作りたい
-              <View style={styles.headerLines}>
-                <View style={styles.headerLine} />
-                <View style={styles.headerLine} />
-              </View> */}
+              
             </ThemedView>
 
             {/* Input Fields */}
@@ -149,6 +201,7 @@ export default function WasteScreen() {
                 textAlignVertical="top"
                 value={notes}
                 onChangeText={setNotes}
+                onFocus={handleNotesFocus}
               />
             </ThemedView>
           </ThemedView>
@@ -170,7 +223,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 14,
-    paddingBottom: 20,
+    paddingBottom: 200, // タッチパッド分の余白を追加
   },
   header: {
     flexDirection: 'row',
@@ -188,8 +241,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   saveButtonText: {
-    fontWeight: '600',
-    color: Colors.light.primary,
+    fontWeight: '400',
+    color: Colors.light.text,
     fontSize: 20,
   },
   headerLines: {
@@ -207,7 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   inputLabel: {
-    color: Colors.light.primary,
+    color: Colors.light.text,
     fontSize: 15,
     marginBottom: 8,
     fontWeight: '400',
@@ -215,20 +268,21 @@ const styles = StyleSheet.create({
   textInput: {
     width: '100%',
     height: 56,
-    backgroundColor: `${Colors.light.primary}1a`,
+    backgroundColor: '#fafeff',
     borderRadius: 5,
-    borderWidth: 3,
+    borderWidth: 1,
     borderColor: Colors.light.primary,
     paddingHorizontal: 12,
     fontSize: 15,
     color: '#101420',
   },
   notesContainer: {
-    marginTop: 20,
+    marginTop: 40, // より大きなマージンを追加
+    marginBottom: 100, // 下部にも余白を追加
     backgroundColor: 'transparent',
   },
   notesLabel: {
-    color: `${Colors.light.primary}59`,
+    color: Colors.light.text,
     fontSize: 15,
     marginBottom: 8,
     marginLeft: 12,
@@ -239,7 +293,7 @@ const styles = StyleSheet.create({
     height: 194,
     backgroundColor: '#fafeff',
     borderRadius: 5,
-    borderWidth: 3,
+    borderWidth: 1,
     borderColor: Colors.light.primary,
     padding: 12,
     fontSize: 15,
