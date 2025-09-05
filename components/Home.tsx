@@ -1,12 +1,13 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import Toast from '@/components/Toast';
 import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
@@ -23,8 +24,37 @@ const weekDay = weekDays[today.getDay()];
 
 // ホーム画面
 export const Screen = () => {
+  const params = useLocalSearchParams();
   const [todayWasteCost, setTodayWasteCost] = useState<number>(0);
   const [hasTodayWaste, setHasTodayWaste] = useState<boolean>(false);
+  
+  // Toast用のstate
+  const [showToast, setShowToast] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
+  const [toastIcon, setToastIcon] = useState<'check-circle' | null>(null);
+
+  // パラメータからToast表示の判定
+  useEffect(() => {
+    console.log('Home.tsx params:', params);
+    if (params.showToast === 'true' && params.toastMessage) {
+      console.log('Toast should show:', params.toastMessage);
+      setToastMessage(params.toastMessage as string);
+      setToastIcon(params.toastIcon as 'check-circle' | null || null);
+      setShowToast(true);
+    }
+  }, [params]);
+
+  // Toast表示後にパラメータをクリアする処理を分離
+  useEffect(() => {
+    if (showToast) {
+      console.log('Toast is now visible');
+      // 少し遅延してからパラメータをクリア
+      const timer = setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   // 今日の廃棄データを取得する関数
   const loadTodayWasteData = () => {
@@ -34,6 +64,15 @@ export const Screen = () => {
     
     setTodayWasteCost(todayCost);
     setHasTodayWaste(todayRecords.length > 0);
+  };
+
+  // 金額の桁数に応じてフォントサイズを調整
+  const getDynamicFontSize = (cost: number) => {
+    const costString = cost.toString();
+    if (costString.length <= 3) return 28; // 3桁以下: 28px
+    if (costString.length <= 4) return 24; // 4桁: 24px
+    if (costString.length <= 5) return 20; // 5桁: 20px
+    return 16; // 6桁以上: 16px
   };
 
   // 画面にフォーカスが当たるたびにデータを更新
@@ -99,7 +138,17 @@ export const Screen = () => {
               <>
                 <Text style={styles.prefixText}>
                   今日捨ててしまった食材は...
-                  <Text style={styles.wasteCostText} adjustsFontSizeToFit>約{todayWasteCost}円分</Text>
+                  <Text 
+                    style={[
+                      styles.wasteCostText, 
+                      { fontSize: getDynamicFontSize(todayWasteCost) }
+                    ]} 
+                    adjustsFontSizeToFit
+                    numberOfLines={1}
+                    minimumFontScale={0.7}
+                  >
+                    約{todayWasteCost}円分
+                  </Text>
                 </Text>
                 <Text style={styles.prefixSmallText}>この「もったいない」を、次に活かそう</Text>
               </>
@@ -159,6 +208,21 @@ export const Screen = () => {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Toast メッセージ */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          visible={showToast}
+          icon={toastIcon}
+          onHide={() => {
+            console.log('Toast onHide called');
+            setShowToast(false);
+          }}
+          backgroundColor={Colors.light.primary}
+          duration={3000}
+        />
+      )}
     </ThemedView>
   );
 };
@@ -307,7 +371,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   wasteCostText: {
-    fontSize: 28,
     fontWeight: "800",
     color: Colors.light.accent,
     textDecorationLine: 'underline',

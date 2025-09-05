@@ -139,15 +139,12 @@ export default function WasteScreen() {
       // 廃棄記録を保存
       wasteDB.addWasteRecord(wasteRecord);
       
-      Alert.alert('保存完了', '廃棄記録を保存しました', [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Home画面に戻る
-            router.replace('/(tabs)');
-          },
-        },
-      ]);
+      console.log('Redirecting to home with toast params');
+      // Alertを削除し、直接Home画面にリダイレクト（Toastメッセージのパラメータ付き）
+      router.replace({
+        pathname: '/(tabs)',
+        params: { showToast: 'true', toastIcon: 'check-circle', toastMessage: '廃棄を記録しました' }
+      });
     } catch (error) {
       console.error('廃棄記録保存エラー:', error);
       Alert.alert('エラー', '保存に失敗しました');
