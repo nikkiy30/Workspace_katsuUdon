@@ -4,6 +4,7 @@ export interface FoodItem {
   quantity: string;
   expiryDate?: string;
   usageDate?: string;
+  usageAmount?: string; // その使用予定日に使う量（例: "200g"）
 }
 
 export interface MarkedDates {

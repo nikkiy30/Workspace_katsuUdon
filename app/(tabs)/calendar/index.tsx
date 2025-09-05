@@ -158,11 +158,18 @@ export default function CalendarScreen() {
     setSuggestions(prev => prev.filter(s => s.id !== id));
   };
 
-  const handleUsageDateSave = async (item: FoodItem, usageDate: string, includeExpiry?: boolean, expiryDate?: string) => {
+  const handleUsageDateSave = async (
+    item: FoodItem,
+    usageDate: string,
+    includeExpiry?: boolean,
+    expiryDate?: string,
+    usageAmount?: string,
+  ) => {
     const itemWithDate: FoodItem = {
       ...item,
       usageDate,
       ...(includeExpiry && expiryDate && { expiryDate }),
+      ...(usageAmount ? { usageAmount } : {}),
       id: Date.now().toString(),
     };
     
@@ -332,7 +339,16 @@ export default function CalendarScreen() {
               <View key={item.id} style={styles.foodItemCard}>
                 <View style={styles.foodItemInfo}>
                   <Text style={styles.foodItemName}>{item.name}</Text>
-                  <Text style={styles.foodItemQuantity}>{item.quantity}</Text>
+                  {(item.usageDate === selectedDate && item.expiryDate !== selectedDate)
+                    ? (
+                        item.usageAmount ? (
+                          <Text style={styles.foodItemQuantity}>使用量: {item.usageAmount}</Text>
+                        ) : null
+                      )
+                    : (item.expiryDate === selectedDate ? (
+                        <Text style={styles.foodItemQuantity}>{item.quantity}</Text>
+                      ) : null)
+                  }
                 </View>
                 <View style={styles.foodItemDates}>
                   {item.usageDate === selectedDate && (

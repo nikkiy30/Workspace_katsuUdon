@@ -9,6 +9,9 @@ import {
   Dimensions,
   Switch,
   TouchableWithoutFeedback,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { X, Check, Calendar, Clock, Zap, Plus, CircleAlert as AlertCircle } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -21,7 +24,13 @@ const { width, height } = Dimensions.get('window');
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onSave: (item: FoodItem, usageDate: string, includeExpiry?: boolean, expiryDate?: string) => void;
+  onSave: (
+    item: FoodItem,
+    usageDate: string,
+    includeExpiry?: boolean,
+    expiryDate?: string,
+    usageAmount?: string,
+  ) => void | Promise<void>;
   selectedItem: FoodItem | null;
 }
 
@@ -37,13 +46,23 @@ export default function UsageDateModal({
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [includeExpiry, setIncludeExpiry] = useState(true);
   const [expiryDate, setExpiryDate] = useState('');
+  const [usageAmountInput, setUsageAmountInput] = useState('');
+  const [selectedUsages, setSelectedUsages] = useState<Record<string, string>>({});
+
+  // ローカルタイムゾーンで YYYY-MM-DD を生成（toISOStringはUTCになるため日付ズレが発生）
+  const formatLocalYMD = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
 
   const getDefaultExpiryDate = () => {
     const today = new Date();
     const days = 3; // カテゴリーなしのデフォルト
     const expiry = new Date(today);
     expiry.setDate(today.getDate() + days);
-    return expiry.toISOString().split('T')[0];
+    return formatLocalYMD(expiry);
   };
 
   React.useEffect(() => {
@@ -66,7 +85,7 @@ export default function UsageDateModal({
       date.setDate(today.getDate() + option.days);
       return {
         ...option,
-        date: date.toISOString().split('T')[0],
+        date: formatLocalYMD(date),
         displayDate: date.toLocaleDateString('ja-JP', {
           month: 'short',
           day: 'numeric',
@@ -78,6 +97,10 @@ export default function UsageDateModal({
   const addUsageDate = (date: string) => {
     if (!selectedDates.includes(date)) {
       setSelectedDates([...selectedDates, date].sort());
+      if (usageAmountInput.trim()) {
+        setSelectedUsages(prev => ({ ...prev, [date]: usageAmountInput.trim() }));
+      }
+      setUsageAmountInput('');
     }
   };
 
@@ -94,6 +117,7 @@ export default function UsageDateModal({
     // 順次保存して競合を回避
     for (let i = 0; i < selectedDates.length; i++) {
       const date = selectedDates[i];
+      const usageAmount = selectedUsages[date];
       // 最初の1件のみ消費期限を付与
       // 以降は使用予定のみ追加
       // includeExpiryがOFFなら全て使用予定のみ
@@ -106,7 +130,8 @@ export default function UsageDateModal({
         selectedItem,
         date,
         includeExpiry && i === 0,
-        includeExpiry ? expiryDate : undefined
+        includeExpiry ? expiryDate : undefined,
+        usageAmount
       );
     }
 
@@ -114,6 +139,7 @@ export default function UsageDateModal({
     setSelectedDates([]);
     setSelectedDate('');
     setIncludeExpiry(true);
+    setSelectedUsages({});
     onClose();
   };
 
@@ -130,7 +156,7 @@ export default function UsageDateModal({
     const current = picked || usagePickerDate;
     setShowUsageDatePicker(Platform.OS === 'ios');
     setUsagePickerDate(current);
-    setSelectedDate(current.toISOString().split('T')[0]);
+    setSelectedDate(formatLocalYMD(current));
   };
 
   if (!selectedItem) return null;
@@ -160,7 +186,12 @@ export default function UsageDateModal({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.content}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+          style={{ flex: 1 }}
+        >
+        <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
           {/* 選択された食材の表示 */}
           <View style={styles.selectedItemCard}>
             <View style={styles.itemHeader}>
@@ -221,23 +252,23 @@ export default function UsageDateModal({
               特定の日付を指定したい場合
             </Text>
             
-            <View style={styles.customDateContainer}>
-              <TouchableOpacity
-                style={styles.datePickerButton}
-                onPress={() => setShowUsageDatePicker((prev) => !prev)}
-              >
-                <Calendar size={20} color={Colors.light.primary} />
-                <Text style={styles.datePickerText}>
-                  {selectedDate ? 
-                    new Date(selectedDate).toLocaleDateString('ja-JP', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    }) : 
-                    '日付を選択'
-                  }
-                </Text>
-              </TouchableOpacity>
+          <View style={styles.customDateContainer}>
+            <TouchableOpacity
+              style={styles.datePickerButton}
+              onPress={() => setShowUsageDatePicker((prev) => !prev)}
+            >
+              <Calendar size={20} color={Colors.light.primary} />
+              <Text style={styles.datePickerText}>
+                {selectedDate ? 
+                  new Date(selectedDate).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  }) : 
+                  '日付を選択'
+                }
+              </Text>
+            </TouchableOpacity>
 
               {showUsageDatePicker && (
                  <DateTimePicker
@@ -251,20 +282,31 @@ export default function UsageDateModal({
                />
               )}
               
-              {selectedDate && (
-                <TouchableOpacity
-                  style={styles.addDateButton}
-                  onPress={handleAddCustomDate}
-                >
-                  <Plus size={20} color="#ffffff" />
-                  <Text style={styles.addDateText}>追加</Text>
-                </TouchableOpacity>
-              )}
+            {/* 使用量入力 */}
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.sectionSubtitle}>この日の使用量（例: 200g, 1個 など）</Text>
+              <TextInput
+                placeholder="使用量を入力"
+                value={usageAmountInput}
+                onChangeText={setUsageAmountInput}
+                style={styles.amountInput}
+              />
             </View>
+
+            {selectedDate && (
+              <TouchableOpacity
+                style={styles.addDateButton}
+                onPress={handleAddCustomDate}
+              >
+                <Plus size={20} color="#ffffff" />
+                <Text style={styles.addDateText}>追加</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           </View>
 
            {/* 選択された使用予定日一覧 */}
-           {selectedDates.length > 0 && (
+          {selectedDates.length > 0 && (
             <View style={styles.selectedDatesSection}>
               <Text style={styles.sectionTitle}>選択された使用予定日</Text>
               <View style={styles.selectedDatesList}>
@@ -275,6 +317,7 @@ export default function UsageDateModal({
                         month: 'short',
                         day: 'numeric',
                       })}
+                      {selectedUsages[date] ? ` ・ 使用量: ${selectedUsages[date]}` : ''}
                     </Text>
                     <TouchableOpacity
                       onPress={() => removeUsageDate(date)}
@@ -322,7 +365,8 @@ export default function UsageDateModal({
               • 「1週間後」：計画的な料理で使用予定
             </Text>
           </View> */}
-        </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -542,6 +586,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  amountInput: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    color: '#374151',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   datePickerIOS: {
     backgroundColor: '#ffffff',
