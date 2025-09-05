@@ -151,7 +151,7 @@ export default function DiagnosisScreen() {
             )}
           </View>
 
-          {/* <View style={styles.inputGroup}>
+          <View style={styles.inputGroup}>
             <TextInput
               style={styles.notesInput}
               value={notes}
@@ -162,7 +162,7 @@ export default function DiagnosisScreen() {
               numberOfLines={6}
               textAlignVertical="top"
             />
-          </View> */}
+          </View>
                 </View>
       </ScrollView>
     </SafeAreaView>
