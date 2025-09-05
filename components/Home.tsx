@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   watchRecordImage: {
-    width: 240,
-    height: 210,
+    width: 240*0.8,
+    height: 210*0.8,
     marginTop: 10,
   },
   cardLargeText: {
