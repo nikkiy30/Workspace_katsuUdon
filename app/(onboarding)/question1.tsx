@@ -123,10 +123,10 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
   },
-  backButton: {
-    marginLeft: 10,
-    padding: 8,
-  },
+  // backButton: {
+  //   marginLeft: 10,
+  //   padding: 8,
+  // },
   stepDot: {
     width: 12,
     height: 12,
