@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,14 @@ import {
   TouchableOpacity,
   Platform,
   Dimensions,
+  LayoutAnimation,
+  UIManager,
+  Animated,
 } from 'react-native';
 import { Calendar, Sparkles, Clock, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { FoodItem } from './foodTypes';
 import { Colors } from '@/constants/Colors';
+import TagActionButton from './TagActionButton';
 
 const { width } = Dimensions.get('window');
 const cardWidth = width * 0.7;
@@ -19,9 +23,10 @@ interface Props {
   suggestions: FoodItem[];
   onExpiryAdd: (item: FoodItem) => void;
   onCustomAdd: (item: FoodItem) => void;
+  onRemoveSuggestion?: (id: string) => void;
 }
 
-export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustomAdd }: Props) {
+export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustomAdd, onRemoveSuggestion }: Props) {
   const getDefaultExpiryDate = () => {
     const today = new Date();
     const days = 3; // カテゴリーなしのデフォルト
@@ -31,6 +36,92 @@ export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustom
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  useEffect(() => {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
+
+  const Card = ({ item }: { item: FoodItem }) => {
+    const opacity = useRef(new Animated.Value(1)).current;
+    const scale = useRef(new Animated.Value(1)).current;
+    const widthAnim = useRef(new Animated.Value(cardWidth)).current;
+    const marginAnim = useRef(new Animated.Value(12)).current;
+
+    const handleDelete = () => {
+      // 自身はフェード＆縮小 → 完了後にリストから削除し、残りのカードはレイアウトアニメーションで左詰め
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 0.85,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(widthAnim, {
+          toValue: 0,
+          duration: 260,
+          useNativeDriver: false,
+        }),
+        Animated.timing(marginAnim, {
+          toValue: 0,
+          duration: 260,
+          useNativeDriver: false,
+        }),
+      ]).start(() => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        onRemoveSuggestion && onRemoveSuggestion(item.id);
+      });
+    };
+
+    return (
+      <Animated.View style={[styles.cardWrapper, { width: widthAnim, marginRight: marginAnim }]}> 
+        <Animated.View style={[styles.suggestionCard, { opacity, transform: [{ scale }] }]}> 
+          <View style={styles.cardContent}>
+            <View style={styles.leftContent}>
+              <Text style={styles.itemName}>
+                {item.name}
+                <Text style={styles.quantity}> ({item.quantity})</Text>
+              </Text>
+              <Text style={styles.expiryInline}>消費期限: {getDefaultExpiryDate()}</Text>
+            </View>
+          </View>
+
+          {onRemoveSuggestion && (
+            <TagActionButton
+              onPress={handleDelete}
+              accessibilityLabel="サジェストを削除"
+              style={styles.deleteButton}
+            />
+          )}
+
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.expiryAddButton}
+              onPress={() => onExpiryAdd(item)}
+              activeOpacity={0.8}
+            >
+              <AlertCircle size={16} color="#ffffff" />
+              <Text style={styles.expiryAddText}>消費期限を追加</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.customAddButton}
+              onPress={() => onCustomAdd(item)}
+              activeOpacity={0.8}
+            >
+              <Calendar size={16} color={Colors.light.primary} />
+              <Text style={styles.customAddText}>使用予定を追加</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </Animated.View>
+    );
   };
 
   return (
@@ -47,48 +138,7 @@ export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustom
         style={styles.scrollView}
       >
         {suggestions.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.suggestionCard}
-            activeOpacity={0.7}
-          >
-            <View style={styles.cardContent}>
-              <View style={styles.leftContent}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.quantity}>{item.quantity}</Text>
-              </View>
-              
-              <View style={styles.rightContent}>
-                <View style={styles.expiryInfo}>
-                  <AlertCircle size={16} color={Colors.light.primary} />
-                  <Text style={styles.expiryLabel}>消費期限</Text>
-                </View>
-                <Text style={styles.expiryDate}>
-                  {getDefaultExpiryDate()}
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.expiryAddButton}
-                onPress={() => onExpiryAdd(item)}
-                activeOpacity={0.8}
-              >
-                <AlertCircle size={16} color="#ffffff" />
-                <Text style={styles.expiryAddText}>消費期限を追加</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.customAddButton}
-                onPress={() => onCustomAdd(item)}
-                activeOpacity={0.8}
-              >
-                <Calendar size={16} color={Colors.light.primary} />
-                <Text style={styles.customAddText}>使用予定を追加</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+          <Card key={item.id} item={item} />
         ))}
       </ScrollView>
     </View>
@@ -117,15 +167,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingRight: 16,
   },
+  cardWrapper: {
+    width: cardWidth,
+    marginRight: 12,
+  },
   suggestionCard: {
     width: cardWidth,
     maxWidth: 280,
     borderRadius: 16,
     padding: 16,
-    marginRight: 12,
     borderWidth: 1,
     backgroundColor: '#ffffff',
     borderColor: Colors.light.primary,
+    position: 'relative',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -147,10 +201,6 @@ const styles = StyleSheet.create({
   leftContent: {
     flex: 1,
   },
-  rightContent: {
-    alignItems: 'flex-end',
-    marginLeft: 12,
-  },
   itemName: {
     fontSize: 18,
     fontWeight: '700',
@@ -162,6 +212,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#6b7280',
     marginBottom: 8,
+  },
+  expiryInline: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
   },
   expiryInfo: {
     flexDirection: 'row',
@@ -178,6 +233,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.light.primary,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   actionButtons: {
     gap: 8,

@@ -16,8 +16,9 @@ import FoodSuggestionCards from './FoodSuggestionCards';
 import AddFoodModal from './AddFoodModal';
 import UsageDateModal from './UsageDateModal';
 import { FoodItem, MarkedDates } from './foodTypes';
-import { getFoodItems, saveFoodItem, clearFoodItems } from './foodStorage';
+import { getFoodItems, saveFoodItem, clearFoodItems, updateFoodItem } from './foodStorage';
 import { Colors } from '@/constants/Colors';
+import TagActionButton from './TagActionButton';
 
 const { width } = Dimensions.get('window');
 
@@ -30,7 +31,7 @@ export default function CalendarScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUsageDateModal, setShowUsageDateModal] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<FoodItem | null>(null);
-  const [suggestions] = useState<FoodItem[]>([
+  const [suggestions, setSuggestions] = useState<FoodItem[]>([
     {
       id: '1',
       name: '鶏むね肉',
@@ -154,6 +155,10 @@ export default function CalendarScreen() {
     setShowUsageDateModal(true);
   };
 
+  const handleRemoveSuggestion = (id: string) => {
+    setSuggestions(prev => prev.filter(s => s.id !== id));
+  };
+
   const handleUsageDateSave = async (item: FoodItem, usageDate: string, includeExpiry?: boolean, expiryDate?: string) => {
     const itemWithDate: FoodItem = {
       ...item,
@@ -181,6 +186,24 @@ export default function CalendarScreen() {
         (1000 * 60 * 60 * 24);
       return daysDiff <= 2 && daysDiff >= 0;
     });
+  };
+
+  const handleRemoveTag = async (
+    itemId: string,
+    field: 'usageDate' | 'expiryDate'
+  ) => {
+    try {
+      const updates: Partial<FoodItem> =
+        field === 'usageDate' ? { usageDate: undefined } : { expiryDate: undefined };
+      await updateFoodItem(itemId, updates);
+      const updatedItems = foodItems.map((it) =>
+        it.id === itemId ? { ...it, ...updates } : it
+      );
+      setFoodItems(updatedItems);
+      updateMarkedDates(updatedItems);
+    } catch (e) {
+      Alert.alert('削除エラー', '削除に失敗しました。もう一度お試しください。');
+    }
   };
 
   return (
@@ -248,6 +271,7 @@ export default function CalendarScreen() {
           suggestions={suggestions}
           onExpiryAdd={handleExpiryAdd}
           onCustomAdd={handleCustomAdd}
+          onRemoveSuggestion={handleRemoveSuggestion}
         />
 
         {/* カレンダー */}
@@ -301,14 +325,28 @@ export default function CalendarScreen() {
                 </View>
                 <View style={styles.foodItemDates}>
                   {item.usageDate === selectedDate && (
-                    <View style={styles.dateTag}>
-                      <Text style={styles.dateTagText}>使用予定</Text>
-                    </View>
+                    <>
+                      <View style={styles.dateTag}>
+                        <Text style={styles.dateTagText}>使用予定</Text>
+                      </View>
+                      <TagActionButton
+                        onPress={() => handleRemoveTag(item.id, 'usageDate')}
+                        accessibilityLabel="使用予定を削除"
+                        style={styles.tagActionButton}
+                      />
+                    </>
                   )}
                   {item.expiryDate === selectedDate && (
-                    <View style={[styles.dateTag, styles.expiryTag]}>
-                      <Text style={styles.dateTagText}>消費期限</Text>
-                    </View>
+                    <>
+                      <View style={[styles.dateTag, styles.expiryTag]}>
+                        <Text style={styles.dateTagText}>消費期限</Text>
+                      </View>
+                      <TagActionButton
+                        onPress={() => handleRemoveTag(item.id, 'expiryDate')}
+                        accessibilityLabel="消費期限を削除"
+                        style={styles.tagActionButton}
+                      />
+                    </>
                   )}
                 </View>
               </View>
@@ -540,5 +578,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#ffffff',
+  },
+  tagActionButton: {
+    marginLeft: 6,
   },
 });
