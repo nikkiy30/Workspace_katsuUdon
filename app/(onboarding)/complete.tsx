@@ -1,3 +1,4 @@
+import { CompletedIcon } from '@/components/CompletedIcon'
 import { Colors } from '@/constants/Colors'
 import { useRouter } from 'expo-router'
 import { useEffect } from 'react'
@@ -28,7 +29,11 @@ export default function CompleteScreen() {
     <View style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>プロフィール設定が完了しました！</Text>
-        
+        <CompletedIcon
+          width={250}
+          height={340}
+        />
+
         <Text style={styles.description}>
           さあ、CHOPとあなただけの{'\n'}フードロス削減プランを始めましょう！
         </Text>
@@ -57,7 +62,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
-    fontSize: 64,
+    width: 200,
+    height: 200,
     marginBottom: 24,
   },
   title: {
