@@ -32,17 +32,9 @@ export default function UsageDateModal({
   const [includeExpiry, setIncludeExpiry] = useState(true);
   const [expiryDate, setExpiryDate] = useState('');
 
-  const getDefaultExpiryDate = (category: string) => {
+  const getDefaultExpiryDate = () => {
     const today = new Date();
-    let days = 3;
-    
-    switch (category) {
-      case '肉類': days = 2; break;
-      case '野菜': days = 5; break;
-      case '乳製品': days = 7; break;
-      case '調味料': days = 365; break;
-    }
-    
+    const days = 3; // カテゴリーなしのデフォルト
     const expiry = new Date(today);
     expiry.setDate(today.getDate() + days);
     return expiry.toISOString().split('T')[0];
@@ -50,7 +42,7 @@ export default function UsageDateModal({
 
   React.useEffect(() => {
     if (selectedItem && visible) {
-      setExpiryDate(getDefaultExpiryDate(selectedItem.category));
+      setExpiryDate(getDefaultExpiryDate());
     }
   }, [selectedItem, visible]);
 
@@ -154,9 +146,7 @@ export default function UsageDateModal({
               <Text style={styles.itemName}>{selectedItem.name}</Text>
               <Text style={styles.itemQuantity}>{selectedItem.quantity}</Text>
             </View>
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{selectedItem.category}</Text>
-            </View>
+            {/* カテゴリーは使用しないため非表示 */}
           </View>
 
           {/* 選択された使用予定日一覧 */}
@@ -185,7 +175,7 @@ export default function UsageDateModal({
           )}
 
           {/* クイック選択オプション */}
-          <View style={styles.quickSelectSection}>
+          {/* <View style={styles.quickSelectSection}>
             <Text style={styles.sectionTitle}>クイック選択</Text>
             <Text style={styles.sectionSubtitle}>
               よく使われる日程から選択してください
@@ -213,46 +203,9 @@ export default function UsageDateModal({
                 );
               })}
             </View>
-          </View>
+          </View> */}
 
-          {/* 消費期限も追加するオプション */}
-          <View style={styles.expirySection}>
-            <View style={styles.expiryHeader}>
-              <View style={styles.expiryTitleContainer}>
-                <AlertCircle size={20} color="#f59e0b" />
-                <Text style={styles.sectionTitle}>消費期限も追加する</Text>
-              </View>
-              <Switch
-                value={includeExpiry}
-                onValueChange={setIncludeExpiry}
-                trackColor={{ false: '#e5e7eb', true: '#bfdbfe' }}
-                thumbColor={includeExpiry ? '#3b82f6' : '#9ca3af'}
-              />
-            </View>
-            
-            {includeExpiry && (
-              <View style={styles.expiryDateContainer}>
-                <Text style={styles.expiryDateLabel}>
-                  消費期限: {new Date(expiryDate).toLocaleDateString('ja-JP', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
-                <TouchableOpacity
-                  style={styles.changeExpiryButton}
-                  onPress={() => {
-                    // 簡単な日付変更（実際の実装では日付ピッカーを使用）
-                    const newDate = new Date(expiryDate);
-                    newDate.setDate(newDate.getDate() + 1);
-                    setExpiryDate(newDate.toISOString().split('T')[0]);
-                  }}
-                >
-                  <Text style={styles.changeExpiryText}>変更</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+
 
           {/* カスタム日付選択 */}
           <View style={styles.customDateSection}>
@@ -296,8 +249,47 @@ export default function UsageDateModal({
             </View>
           </View>
 
+                    {/* 消費期限も追加するオプション */}
+                    <View style={styles.expirySection}>
+            <View style={styles.expiryHeader}>
+              <View style={styles.expiryTitleContainer}>
+                <AlertCircle size={20} color="#f59e0b" />
+                <Text style={styles.sectionTitle}>消費期限も追加する</Text>
+              </View>
+              <Switch
+                value={includeExpiry}
+                onValueChange={setIncludeExpiry}
+                trackColor={{ false: '#e5e7eb', true: '#bfdbfe' }}
+                thumbColor={includeExpiry ? '#3b82f6' : '#9ca3af'}
+              />
+            </View>
+            
+            {includeExpiry && (
+              <View style={styles.expiryDateContainer}>
+                <Text style={styles.expiryDateLabel}>
+                  消費期限: {new Date(expiryDate).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <TouchableOpacity
+                  style={styles.changeExpiryButton}
+                  onPress={() => {
+                    // 簡単な日付変更（実際の実装では日付ピッカーを使用）
+                    const newDate = new Date(expiryDate);
+                    newDate.setDate(newDate.getDate() + 1);
+                    setExpiryDate(newDate.toISOString().split('T')[0]);
+                  }}
+                >
+                  <Text style={styles.changeExpiryText}>変更</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
           {/* 使用例・ヒント */}
-          <View style={styles.hintSection}>
+          {/* <View style={styles.hintSection}>
             <Text style={styles.hintTitle}>💡 使い方のヒント</Text>
             <Text style={styles.hintText}>
               • 「今日」：すぐに使う予定の食材
@@ -311,7 +303,7 @@ export default function UsageDateModal({
             <Text style={styles.hintText}>
               • 「1週間後」：計画的な料理で使用予定
             </Text>
-          </View>
+          </View> */}
         </View>
       </View>
     </Modal>
@@ -591,4 +583,3 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 });
-

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Calendar, Sparkles, Clock, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { FoodItem } from './foodTypes';
+import { Colors } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 const cardWidth = width * 0.7;
@@ -21,55 +22,9 @@ interface Props {
 }
 
 export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustomAdd }: Props) {
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case '肉類':
-        return '#fef2f2';
-      case '野菜':
-        return '#f0fdf4';
-      case '乳製品':
-        return '#eff6ff';
-      case '調味料':
-        return '#f5f3ff';
-      default:
-        return '#f9fafb';
-    }
-  };
-
-  const getCategoryBorderColor = (category: string) => {
-    switch (category) {
-      case '肉類':
-        return '#fecaca';
-      case '野菜':
-        return '#bbf7d0';
-      case '乳製品':
-        return '#bfdbfe';
-      case '調味料':
-        return '#ddd6fe';
-      default:
-        return '#e5e7eb';
-    }
-  };
-
-  const getDefaultExpiryDate = (category: string) => {
+  const getDefaultExpiryDate = () => {
     const today = new Date();
-    let days = 3; // デフォルト
-    
-    switch (category) {
-      case '肉類':
-        days = 2;
-        break;
-      case '野菜':
-        days = 5;
-        break;
-      case '乳製品':
-        days = 7;
-        break;
-      case '調味料':
-        days = 365;
-        break;
-    }
-    
+    const days = 3; // カテゴリーなしのデフォルト
     const expiryDate = new Date(today);
     expiryDate.setDate(today.getDate() + days);
     return expiryDate.toLocaleDateString('ja-JP', {
@@ -81,7 +36,7 @@ export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustom
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Sparkles size={20} color="#3b82f6" />
+        <Sparkles size={20} color={Colors.light.primary} />
         <Text style={styles.title}>AI相談履歴からのサジェスト</Text>
       </View>
       
@@ -94,31 +49,22 @@ export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustom
         {suggestions.map((item) => (
           <TouchableOpacity
             key={item.id}
-            style={[
-              styles.suggestionCard,
-              {
-                backgroundColor: getCategoryColor(item.category),
-                borderColor: getCategoryBorderColor(item.category),
-              },
-            ]}
+            style={styles.suggestionCard}
             activeOpacity={0.7}
           >
             <View style={styles.cardContent}>
               <View style={styles.leftContent}>
                 <Text style={styles.itemName}>{item.name}</Text>
                 <Text style={styles.quantity}>{item.quantity}</Text>
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>{item.category}</Text>
-                </View>
               </View>
               
               <View style={styles.rightContent}>
                 <View style={styles.expiryInfo}>
-                  <AlertCircle size={16} color="#f59e0b" />
-                  <Text style={styles.expiryLabel}>目安期限</Text>
+                  <AlertCircle size={16} color={Colors.light.primary} />
+                  <Text style={styles.expiryLabel}>消費期限</Text>
                 </View>
                 <Text style={styles.expiryDate}>
-                  {getDefaultExpiryDate(item.category)}
+                  {getDefaultExpiryDate()}
                 </Text>
               </View>
             </View>
@@ -138,7 +84,7 @@ export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustom
                 onPress={() => onCustomAdd(item)}
                 activeOpacity={0.8}
               >
-                <Calendar size={16} color="#3b82f6" />
+                <Calendar size={16} color={Colors.light.primary} />
                 <Text style={styles.customAddText}>使用予定を追加</Text>
               </TouchableOpacity>
             </View>
@@ -178,6 +124,8 @@ const styles = StyleSheet.create({
     padding: 16,
     marginRight: 12,
     borderWidth: 1,
+    backgroundColor: '#ffffff',
+    borderColor: Colors.light.primary,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -215,18 +163,6 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 8,
   },
-  categoryBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#3b82f6',
-  },
   expiryInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -236,12 +172,12 @@ const styles = StyleSheet.create({
   expiryLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#f59e0b',
+    color: Colors.light.primary,
   },
   expiryDate: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#f59e0b',
+    color: Colors.light.primary,
   },
   actionButtons: {
     gap: 8,
@@ -250,13 +186,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f59e0b',
+    backgroundColor: Colors.light.primary,
     borderRadius: 12,
     paddingVertical: 12,
     gap: 6,
     ...Platform.select({
       ios: {
-        shadowColor: '#f59e0b',
+        shadowColor: Colors.light.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -279,13 +215,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     borderWidth: 2,
-    borderColor: '#3b82f6',
+    borderColor: Colors.light.primary,
     gap: 6,
   },
   customAddText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#3b82f6',
+    color: Colors.light.primary,
   },
 });
-

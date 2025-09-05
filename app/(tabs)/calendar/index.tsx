@@ -8,14 +8,15 @@ import {
   TouchableOpacity,
   Platform,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { Plus, ChefHat, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { Plus, ChefHat, CircleAlert as AlertCircle, RotateCcw } from 'lucide-react-native';
 import FoodSuggestionCards from './FoodSuggestionCards';
 import AddFoodModal from './AddFoodModal';
 import UsageDateModal from './UsageDateModal';
 import { FoodItem, MarkedDates } from './foodTypes';
-import { getFoodItems, saveFoodItem } from './foodStorage';
+import { getFoodItems, saveFoodItem, clearFoodItems } from './foodStorage';
 
 const { width } = Dimensions.get('window');
 
@@ -33,31 +34,26 @@ export default function CalendarScreen() {
       id: '1',
       name: '鶏むね肉',
       quantity: '300g',
-      category: '肉類',
     },
     {
       id: '2',
       name: 'ブロッコリー',
       quantity: '1株',
-      category: '野菜',
     },
     {
       id: '3',
       name: '牛乳',
       quantity: '1000ml',
-      category: '乳製品',
     },
     {
       id: '4',
       name: '玉ねぎ',
       quantity: '2個',
-      category: '野菜',
     },
     {
       id: '5',
       name: '醤油',
       quantity: '1本',
-      category: '調味料',
     },
   ]);
 
@@ -137,19 +133,9 @@ export default function CalendarScreen() {
   };
 
   const handleExpiryAdd = async (suggestion: FoodItem) => {
-    // カテゴリーに応じたデフォルト消費期限を設定
-    const getDefaultExpiryDays = (category: string) => {
-      switch (category) {
-        case '肉類': return 2;
-        case '野菜': return 5;
-        case '乳製品': return 7;
-        case '調味料': return 365;
-        default: return 3;
-      }
-    };
-    
+    // カテゴリーなし: デフォルトは3日後に設定
     const today = new Date();
-    const expiryDays = getDefaultExpiryDays(suggestion.category);
+    const expiryDays = 3;
     today.setDate(today.getDate() + expiryDays);
     const expiryDate = today.toISOString().split('T')[0];
     
@@ -204,12 +190,33 @@ export default function CalendarScreen() {
           <ChefHat size={28} color="#3b82f6" />
           <Text style={styles.headerTitle}>食材カレンダー</Text>
         </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowAddModal(true)}
-        >
-          <Plus size={24} color="#ffffff" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.resetButton}
+            onPress={async () => {
+              Alert.alert('リセット確認', '登録済みの使用予定・消費期限をすべて削除します。よろしいですか？', [
+                { text: 'キャンセル', style: 'cancel' },
+                {
+                  text: '削除する',
+                  style: 'destructive',
+                  onPress: async () => {
+                    await clearFoodItems();
+                    setFoodItems([]);
+                    updateMarkedDates([]);
+                  },
+                },
+              ]);
+            }}
+          >
+            <RotateCcw size={20} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddModal(true)}
+          >
+            <Plus size={24} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -359,11 +366,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
     color: '#111827',
     marginLeft: 12,
+  },
+  resetButton: {
+    backgroundColor: '#ef4444',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#ef4444',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
   addButton: {
     backgroundColor: '#3b82f6',

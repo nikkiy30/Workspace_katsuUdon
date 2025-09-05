@@ -32,9 +32,6 @@ export default function AddFoodModal({
   const [quantity, setQuantity] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [usageDate, setUsageDate] = useState(selectedDate);
-  const [selectedCategory, setSelectedCategory] = useState('野菜');
-
-  const categories = ['野菜', '肉類', '乳製品', '調味料', 'その他'];
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -44,7 +41,6 @@ export default function AddFoodModal({
       quantity: quantity.trim() || '1個',
       expiryDate: expiryDate || undefined,
       usageDate: usageDate || undefined,
-      category: selectedCategory,
     });
 
     // フォームをリセット
@@ -52,7 +48,6 @@ export default function AddFoodModal({
     setQuantity('');
     setExpiryDate('');
     setUsageDate(selectedDate);
-    setSelectedCategory('野菜');
   };
 
   return (
@@ -92,41 +87,7 @@ export default function AddFoodModal({
             />
           </View>
 
-          {/* カテゴリー選択 */}
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>カテゴリー</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.categoryContainer}>
-                {categories.map((category) => (
-                  <TouchableOpacity
-                    key={category}
-                    style={[
-                      styles.categoryButton,
-                      selectedCategory === category && styles.selectedCategory,
-                      {
-                        borderColor:
-                          selectedCategory === category
-                            ? getCategoryColor(category)
-                            : '#e5e7eb',
-                      },
-                    ]}
-                    onPress={() => setSelectedCategory(category)}
-                  >
-                    <Text
-                      style={[
-                        styles.categoryText,
-                        selectedCategory === category && {
-                          color: getCategoryColor(category),
-                        },
-                      ]}
-                    >
-                      {category}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
+          {/* カテゴリーは使用しないため省略 */}
 
           {/* 統合日付設定セクション */}
           <View style={styles.dateSection}>
@@ -194,20 +155,6 @@ export default function AddFoodModal({
   );
 }
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case '肉類':
-      return '#ef4444';
-    case '野菜':
-      return '#10b981';
-    case '乳製品':
-      return '#3b82f6';
-    case '調味料':
-      return '#8b5cf6';
-    default:
-      return '#6b7280';
-  }
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -267,26 +214,6 @@ const styles = StyleSheet.create({
     color: '#374151',
     borderWidth: 1,
     borderColor: '#e5e7eb',
-  },
-  categoryContainer: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    marginRight: 8,
-    backgroundColor: '#ffffff',
-  },
-  selectedCategory: {
-    backgroundColor: '#f8fafc',
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
   },
   dateSection: {
     backgroundColor: '#f8fafc',
@@ -356,4 +283,3 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
   },
 });
-

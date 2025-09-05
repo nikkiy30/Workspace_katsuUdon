@@ -4,7 +4,6 @@ export interface FoodItem {
   quantity: string;
   expiryDate?: string;
   usageDate?: string;
-  category: string;
 }
 
 export interface MarkedDates {
@@ -18,4 +17,3 @@ export interface MarkedDates {
     }>;
   };
 }
-
