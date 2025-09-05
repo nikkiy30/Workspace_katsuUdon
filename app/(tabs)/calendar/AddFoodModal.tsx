@@ -90,66 +90,6 @@ export default function AddFoodModal({
 
           {/* カテゴリーは使用しないため省略 */}
 
-          {/* 統合日付設定セクション */}
-          <View style={styles.dateSection}>
-            <Text style={styles.sectionHeader}>日付設定</Text>
-            <Text style={styles.sectionSubtext}>
-              使用計画と消費期限を同時に設定できます
-            </Text>
-
-            {/* 使用予定日 */}
-            <View style={styles.dateInputContainer}>
-              <View style={styles.dateHeader}>
-                <Clock size={20} color={Colors.light.primary} />
-                <Text style={styles.dateLabel}>使用予定日</Text>
-              </View>
-              <TextInput
-                style={styles.dateInput}
-                placeholder="YYYY-MM-DD"
-                value={usageDate}
-                onChangeText={setUsageDate}
-              />
-            </View>
-
-            {/* 消費期限 */}
-            <View style={styles.dateInputContainer}>
-              <View style={styles.dateHeader}>
-                <Calendar size={20} color="#f59e0b" />
-                <Text style={styles.dateLabel}>消費期限</Text>
-              </View>
-              <TextInput
-                style={styles.dateInput}
-                placeholder="YYYY-MM-DD"
-                value={expiryDate}
-                onChangeText={setExpiryDate}
-              />
-            </View>
-          </View>
-
-          {/* プリセット期限ボタン */}
-          <View style={styles.presetSection}>
-            <Text style={styles.presetTitle}>期限プリセット</Text>
-            <View style={styles.presetButtons}>
-              {[
-                { label: '今日', days: 0 },
-                { label: '明日', days: 1 },
-                { label: '3日後', days: 3 },
-                { label: '1週間', days: 7 },
-              ].map((preset) => (
-                <TouchableOpacity
-                  key={preset.label}
-                  style={styles.presetButton}
-                  onPress={() => {
-                    const date = new Date();
-                    date.setDate(date.getDate() + preset.days);
-                    setExpiryDate(date.toISOString().split('T')[0]);
-                  }}
-                >
-                  <Text style={styles.presetButtonText}>{preset.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
         </ScrollView>
       </View>
     </Modal>
