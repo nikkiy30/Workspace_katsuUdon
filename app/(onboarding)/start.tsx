@@ -35,8 +35,9 @@ export default function Profile1Screen() {
         </View>
         {/* イラスト */}
         <Image
-          source={require('@/assets/images/food.png')} // ここは用意した画像に変更
+          source={require('@/assets/images/food.svg')} // ここは用意した画像に変更
           style={styles.image}
+          contentFit='contain'
         />
 
         {/* ボタン */}
