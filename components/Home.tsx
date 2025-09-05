@@ -1,10 +1,12 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from '@/constants/Colors';
+import { WasteDB } from '@/database/db/Wastedb';
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
   { icon: HomeIcon, label: "ホーム" },
@@ -20,6 +22,54 @@ const weekDay = weekDays[today.getDay()];
 
 // ホーム画面
 export const Screen = () => {
+  const [todayWasteCost, setTodayWasteCost] = useState<number>(0);
+  const [hasTodayWaste, setHasTodayWaste] = useState<boolean>(false);
+
+  useEffect(() => {
+    const wasteDB = new WasteDB();
+    const todayCost = wasteDB.getTodayTotalCost();
+    const todayRecords = wasteDB.getTodayWasteRecords();
+    
+    setTodayWasteCost(todayCost);
+    setHasTodayWaste(todayRecords.length > 0);
+  }, []);
+
+  // 全ての廃棄データを削除
+  const handleClearAllWasteData = () => {
+    Alert.alert(
+      '確認',
+      '全ての廃棄データを削除しますか？この操作は取り消せません。',
+      [
+        {
+          text: 'キャンセル',
+          style: 'cancel',
+        },
+        {
+          text: '削除',
+          style: 'destructive',
+          onPress: () => {
+            const wasteDB = new WasteDB();
+            console.log('削除前の廃棄データ:');
+            wasteDB.logAllWasteRecords();
+
+            const success = wasteDB.deleteAllWasteRecords();
+
+            if (success) {
+              console.log('✅ 全ての廃棄データを正常に削除しました');
+              Alert.alert('完了', '全ての廃棄データを削除しました。');
+              // 状態を更新
+              setTodayWasteCost(0);
+              setHasTodayWaste(false);
+            } else {
+              console.log('❌ 廃棄データの削除に失敗しました');
+              Alert.alert('エラー', '廃棄データの削除に失敗しました。');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ThemedView style={styles.container}>
 
@@ -36,16 +86,33 @@ export const Screen = () => {
           onPress={() => router.push('/feedback')}
         >
           <View style={styles.cardContent}>
-            <Text style={styles.cardLargeText}>今日、使いきれなかった食材は{'\n'}ありましたか？</Text>
-            <Text style={styles.cardSmallText}>廃棄してしまった食材を記録して、次の買い物に活かしましょう。</Text>
+            {hasTodayWaste ? (
+              <>
+                <Text style={styles.cardLargeText}>今日の廃棄は{todayWasteCost}円です</Text>
+                <Text style={styles.cardSmallText}>廃棄してしまった食材を記録して、次の買い物に活かしましょう。</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.cardLargeText}>今日、使いきれなかった食材は{'\n'}ありましたか？</Text>
+                <Text style={styles.cardSmallText}>廃棄してしまった食材を記録して、次の買い物に活かしましょう。</Text>
+              </>
+            )}
             <TouchableOpacity onPress={() => router.push('/feedback')} style={styles.button} activeOpacity={0.8}>
               <Text style={styles.buttonText}>きろくをみる</Text>
             </TouchableOpacity>
-            <Image
-              source={require('@assets/images/watch-record.svg')}
-              style={styles.watchRecordImage}
-              contentFit="contain"
-            />
+            {hasTodayWaste ? (
+              <Image
+                source={require('@assets/images/eating-pasta.svg')}
+                style={styles.watchRecordImage}
+                contentFit="contain"
+              />
+            ) : (
+              <Image
+                source={require('@assets/images/watch-record.svg')}
+                style={styles.watchRecordImage}
+                contentFit="contain"
+              />
+            )}
           </View>
         </TouchableOpacity>
 
@@ -59,7 +126,19 @@ export const Screen = () => {
             <ThemedText>廃棄入力</ThemedText>
           </View>
         </TouchableOpacity>
-      </ScrollView>
+
+        {/* 開発用: 全廃棄データ削除ボタン */}
+        {/* <TouchableOpacity
+          style={[styles.cardMedium, { backgroundColor: '#ffebeb' }]}
+          activeOpacity={0.8}
+          onPress={handleClearAllWasteData}
+        >
+          <View style={styles.wasteInputButton}>
+            <Trash2 color="#ff4444" size={24} />
+            <Text style={{ color: '#ff4444', fontSize: 16 }}>全廃棄データ削除</Text>
+          </View>
+        </TouchableOpacity>
+      </ScrollView> */}
 
       <View style={styles.bottomNav}>
         {navigationItems.map((item, idx) => (

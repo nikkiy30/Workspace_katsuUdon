@@ -14,6 +14,7 @@ export interface WasteRecordInput {
   food_name: string;
   throw_amount: string;
   buy_amount: string;
+  cost?: number;
   created_at: string;
 }
 

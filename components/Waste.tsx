@@ -89,6 +89,7 @@ export default function WasteScreen() {
         food_name: foodName.trim(),
         throw_amount: throwAmount.trim(),
         buy_amount: buyAmount.trim(),
+        cost: 0, // デフォルト値として0を設定
         created_at: new Date().toISOString(),
       };
 

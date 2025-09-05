@@ -20,6 +20,7 @@ export class WasteDB {
         food_name: row.food_name,
         throw_amount: row.throw_amount,
         buy_amount: row.buy_amount,
+        cost: row.cost || 0,
         created_at: row.created_at,
       }));
     } catch (error) {
@@ -34,13 +35,14 @@ export class WasteDB {
   public addWasteRecord(record: WasteRecordInput): number | null {
     try {
       const sql = `
-        INSERT INTO waste_records (food_name, throw_amount, buy_amount, created_at)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO waste_records (food_name, throw_amount, buy_amount, cost, created_at)
+        VALUES (?, ?, ?, ?, ?)
       `;
       const result = this.db.runSync(sql, [
         record.food_name,
         record.throw_amount,
         record.buy_amount,
+        record.cost || 0,
         record.created_at,
       ]);
       
@@ -56,6 +58,43 @@ export class WasteDB {
   }
 
   /**
+   * 今日の廃棄記録を取得
+   */
+  public getTodayWasteRecords(): WasteRecord[] {
+    try {
+      // 今日の日付を取得（YYYY-MM-DD形式）
+      const today = new Date().toISOString().split('T')[0];
+      const sql = 'SELECT * FROM waste_records WHERE DATE(created_at) = ?';
+      const result = this.db.getAllSync(sql, [today]) as any;
+      
+      return result.map((row: any) => ({
+        id: row.id,
+        food_name: row.food_name,
+        throw_amount: row.throw_amount,
+        buy_amount: row.buy_amount,
+        cost: row.cost || 0,
+        created_at: row.created_at,
+      }));
+    } catch (error) {
+      console.error('今日の廃棄記録取得エラー:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 今日の廃棄コストの合計を取得
+   */
+  public getTodayTotalCost(): number {
+    try {
+      const todayRecords = this.getTodayWasteRecords();
+      return todayRecords.reduce((total, record) => total + (record.cost || 0), 0);
+    } catch (error) {
+      console.error('今日の廃棄コスト合計取得エラー:', error);
+      return 0;
+    }
+  }
+
+  /**
    * 廃棄記録を削除（成功時true、失敗時false）を投げる
    */
   public deleteWasteRecord(id: number): boolean {
@@ -65,6 +104,25 @@ export class WasteDB {
       return true;
     } catch (error) {
       console.error('廃棄記録削除エラー:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 全ての廃棄記録を削除（成功時true、失敗時false）
+   */
+  public deleteAllWasteRecords(): boolean {
+    try {
+      const sql = 'DELETE FROM waste_records';
+      this.db.runSync(sql);
+      console.log('全ての廃棄記録を削除しました');
+      
+      // 削除後の状態をログ表示
+      this.logAllWasteRecords();
+      
+      return true;
+    } catch (error) {
+      console.error('全廃棄記録削除エラー:', error);
       return false;
     }
   }
@@ -87,6 +145,7 @@ export class WasteDB {
           console.log(`食品名: ${record.food_name}`);
           console.log(`廃棄量: ${record.throw_amount}`);
           console.log(`購入量: ${record.buy_amount}`);
+          console.log(`コスト: ${record.cost || 0}円`);
           console.log(`作成日時: ${record.created_at}`);
         });
       }
@@ -110,6 +169,7 @@ export class WasteDB {
         console.log(`食品名: ${result.food_name}`);
         console.log(`廃棄量: ${result.throw_amount}`);
         console.log(`購入量: ${result.buy_amount}`);
+        console.log(`コスト: ${result.cost || 0}円`);
         console.log(`作成日時: ${result.created_at}`);
         console.log('====================');
       } else {
