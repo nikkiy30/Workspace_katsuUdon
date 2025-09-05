@@ -86,8 +86,11 @@ export class WasteDB {
    */
   public getTodayTotalCost(): number {
     try {
-      const todayRecords = this.getTodayWasteRecords();
-      return todayRecords.reduce((total, record) => total + (record.cost || 0), 0);
+      const today = new Date().toISOString().split('T')[0];
+      const sql = 'SELECT SUM(cost) as total FROM waste_records WHERE DATE(created_at) = ?';
+      const result = this.db.getFirstSync(sql, [today]) as any;
+      
+      return result?.total || 0;
     } catch (error) {
       console.error('今日の廃棄コスト合計取得エラー:', error);
       return 0;

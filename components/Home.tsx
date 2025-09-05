@@ -2,10 +2,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
@@ -25,14 +26,22 @@ export const Screen = () => {
   const [todayWasteCost, setTodayWasteCost] = useState<number>(0);
   const [hasTodayWaste, setHasTodayWaste] = useState<boolean>(false);
 
-  useEffect(() => {
+  // 今日の廃棄データを取得する関数
+  const loadTodayWasteData = () => {
     const wasteDB = new WasteDB();
     const todayCost = wasteDB.getTodayTotalCost();
     const todayRecords = wasteDB.getTodayWasteRecords();
     
     setTodayWasteCost(todayCost);
     setHasTodayWaste(todayRecords.length > 0);
-  }, []);
+  };
+
+  // 画面にフォーカスが当たるたびにデータを更新
+  useFocusEffect(
+    React.useCallback(() => {
+      loadTodayWasteData();
+    }, [])
+  );
 
   // 全ての廃棄データを削除
   const handleClearAllWasteData = () => {
@@ -88,8 +97,11 @@ export const Screen = () => {
           <View style={styles.cardContent}>
             {hasTodayWaste ? (
               <>
-                <Text style={styles.cardLargeText}>今日の廃棄は{todayWasteCost}円です</Text>
-                <Text style={styles.cardSmallText}>廃棄してしまった食材を記録して、次の買い物に活かしましょう。</Text>
+                <Text style={styles.prefixText}>
+                  今日捨ててしまった食材は...
+                  <Text style={styles.wasteCostText} adjustsFontSizeToFit>約{todayWasteCost}円分</Text>
+                </Text>
+                <Text style={styles.prefixSmallText}>この「もったいない」を、次に活かそう</Text>
               </>
             ) : (
               <>
@@ -127,7 +139,7 @@ export const Screen = () => {
           </View>
         </TouchableOpacity>
 
-        {/* 開発用: 全廃棄データ削除ボタン */}
+        {/* 開発用: 全廃棄データ削除ボタン 開発中に、データを削除したいときにコメントアウトして使ってください */}
         {/* <TouchableOpacity
           style={[styles.cardMedium, { backgroundColor: '#ffebeb' }]}
           activeOpacity={0.8}
@@ -137,8 +149,8 @@ export const Screen = () => {
             <Trash2 color="#ff4444" size={24} />
             <Text style={{ color: '#ff4444', fontSize: 16 }}>全廃棄データ削除</Text>
           </View>
-        </TouchableOpacity>
-      </ScrollView> */}
+        </TouchableOpacity> */}
+      </ScrollView>
 
       <View style={styles.bottomNav}>
         {navigationItems.map((item, idx) => (
@@ -192,12 +204,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.primary,
     backgroundColor: Colors.light.background,
-    padding: 20,
+    padding: 16,
   },
   cardContent: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "space-around", // space-betweenからspace-aroundに変更して間隔を狭くする
     width: "100%",
     minHeight: 360,
   },
@@ -251,11 +263,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  watchRecordImage: {
-    width: 240*0.8,
-    height: 210*0.8,
-    marginTop: 10,
-  },
   cardLargeText: {
     fontSize: 20,
     fontWeight: "800",
@@ -277,7 +284,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 40,
     borderRadius: 50,
-    marginVertical: 4,
+    marginVertical: 8,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -290,5 +297,32 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  prefixText: {
+    fontSize: 12,
+    color: Colors.light.primary,
+    textAlign: "center",
+    textDecorationLine: 'underline',
+    textDecorationColor: Colors.light.primary,
+    marginBottom: 8,
+  },
+  wasteCostText: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: Colors.light.accent,
+    textDecorationLine: 'underline',
+    textDecorationColor: Colors.light.primary,
+    textDecorationStyle: 'solid',
+  },
+  prefixSmallText: {
+    fontSize: 12,
+    color: Colors.light.primary,
+    textAlign: "center",
+    marginTop: 4, 
+  },
+  watchRecordImage: {
+    width: 240*0.7,
+    height: 210*0.7,
+    marginTop: 4,
   },
 });

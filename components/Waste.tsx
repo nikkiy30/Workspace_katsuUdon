@@ -2,11 +2,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
-import { WasteRecordInput } from '@/database/types';
+import { GoogleGenAI } from '@google/genai';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
 import {
   Alert,
   SafeAreaView,
@@ -22,6 +23,10 @@ interface InputField {
   placeholder: string;
   value: string;
 }
+
+// Gemini APIの設定
+const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+const genAI = new GoogleGenAI({ apiKey: apiKey });
 
 export default function WasteScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -63,7 +68,41 @@ export default function WasteScreen() {
     );
   };
 
-  const handleSave = () => {
+  const generateAISuggestion = async (foodName: string, throwAmount: string, buyAmount: string): Promise<number> => {
+    if (!apiKey) {
+      console.warn('Gemini APIキーが設定されていません');
+      return 0;
+    }
+
+    try {
+      const prompt = `以下の情報をもとに廃棄コストを計算してください（出力は数字だけにしてください）。\n\n廃棄する食品: ${foodName}\n廃棄量: ${throwAmount}\n購入量・金額: ${buyAmount}\n例：100円なら100とだけ答えてください。`;
+
+      const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-lite',
+        contents: prompt,
+      });
+
+      const suggestion = response.text ?? '0';
+      // AIの応答から数値を抽出して整数に変換
+      const numericValue = parseInt(suggestion.replace(/[^\d]/g, ''), 10);
+      return isNaN(numericValue) ? 0 : numericValue;
+    } catch (error) {
+      console.error('AI改善提案生成エラー:', error);
+      return 0;
+    }
+  };
+
+  // useEffectの修正（非同期処理を内部で実行）
+  useEffect(() => {
+    const initializeData = async () => {
+      // 必要に応じて初期化処理をここに記述
+      console.log('WasteScreen initialized');
+    };
+    
+    initializeData();
+  }, []);
+
+  const handleSave = async () => {
     // 入力値を取得
     const foodName = inputFields.find(field => field.id === 'food-item')?.value || '';
     const throwAmount = inputFields.find(field => field.id === 'disposal-amount')?.value || '';
@@ -85,22 +124,28 @@ export default function WasteScreen() {
 
     try {
       const wasteDB = new WasteDB();
-      const wasteRecord: WasteRecordInput = {
+
+      // geminiでcostを計算させる（整数で取得）
+      const cost = await generateAISuggestion(foodName, throwAmount, buyAmount);
+
+      const wasteRecord = {
         food_name: foodName.trim(),
         throw_amount: throwAmount.trim(),
         buy_amount: buyAmount.trim(),
-        cost: 0, // デフォルト値として0を設定
+        cost: cost,
         created_at: new Date().toISOString(),
       };
 
-      //! ここで記録する
+      // 廃棄記録を保存
       wasteDB.addWasteRecord(wasteRecord);
       
-      // wasteDB.logLatestWasteRecord;
       Alert.alert('保存完了', '廃棄記録を保存しました', [
         {
           text: 'OK',
-          onPress: () => router.back(),
+          onPress: () => {
+            // Home画面に戻る
+            router.replace('/(tabs)');
+          },
         },
       ]);
     } catch (error) {
