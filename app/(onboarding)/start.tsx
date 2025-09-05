@@ -2,7 +2,6 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Colors } from '@/constants/Colors';
-import StepIndicator from '@components/StepIndicator';
 import { useRouter } from 'expo-router';
 
 const router = useRouter();
@@ -12,9 +11,17 @@ export default function Profile1Screen() {
     <View style={styles.container}>
 
       {/* コンテンツ部分 */}
+        <View style={styles.stepperContainer}>
+                  <View style={[styles.stepDot, styles.stepDotActive]} />
+                  <View style={styles.stepLine} />
+                  <View style={styles.stepDot} />
+                  <View style={styles.stepLine} />
+                  <View style={styles.stepDot} />
+                  <View style={styles.stepLine} />
+                  <View style={styles.stepDot} />
+                </View>
       <View style={styles.card}>
         {/* ステップのドット */}
-        <StepIndicator totalSteps={4} currentStep={1} />
 
         <Text style={styles.title}></Text>
 
@@ -96,7 +103,7 @@ const styles = StyleSheet.create({
     color: Colors.light.primary,
     textAlign: 'center',
     marginBottom: 20,
-    marginTop: 0,
+    marginTop: -30,
     lineHeight: 28,
   },
   textBlock: {
@@ -131,5 +138,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     marginBottom: 70,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 50,
+    marginBottom: 0,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  stepDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#e5e7eb',
+  },
+  stepDotActive: {
+    backgroundColor: Colors.light.primary,
+  },
+  stepLine: {
+    width: 32,
+    height: 2,
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 8,
   },
 });
