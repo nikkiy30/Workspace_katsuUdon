@@ -19,8 +19,9 @@ export class DatabaseSchema {
       this.createProfileTable();
       this.createWasteRecordsTable();
       this.migrateWasteRecordsTable(); // マイグレーション実行
+      // 任意のテーブル（必要に応じて拡張）
       // this.createFoodItemsTable();
-      // this.createDiagnosisHistoryTable();
+      this.createDiagnosisEntriesTable();
       console.log('全テーブルの作成が完了しました（既存の場合はスキップ）');
     } catch (error) {
       console.error('テーブル作成エラー:', error);
@@ -108,25 +109,20 @@ export class DatabaseSchema {
   }
 
   /**
-   * AI診断履歴テーブル
+   * AI診断入力の簡易テーブル（サジェスト元データ）
    */
-  private createDiagnosisHistoryTable(): void {
+  private createDiagnosisEntriesTable(): void {
     const sql = `
-      CREATE TABLE IF NOT EXISTS diagnosis_history (
+      CREATE TABLE IF NOT EXISTS diagnosis_entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
         food_name TEXT NOT NULL,
         amount TEXT,
         expiry_date DATE,
-        notes TEXT,
-        ai_recommendation TEXT, -- AI分析結果
-        purchase_decision BOOLEAN, -- 購入したかどうか
-        diagnosis_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
     this.db.execSync(sql);
-    console.log('diagnosis_historyテーブルを作成しました');
+    console.log('diagnosis_entriesテーブルを作成しました');
   }
 
   /**

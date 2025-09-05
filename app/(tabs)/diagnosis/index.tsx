@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native'
 import { Colors } from '../../../constants/Colors'
+import { DiagnosisDB } from '@/database/db/Diagnosisdb';
 
 export default function DiagnosisScreen() {
   const router = useRouter()
@@ -77,6 +78,18 @@ export default function DiagnosisScreen() {
         notes,
       }
 
+      // DBに保存（サジェスト用）
+      try {
+        const db = new DiagnosisDB();
+        db.addEntry({
+          food_name: diagnosisData.foodName,
+          amount: diagnosisData.amount,
+          expiry_date: diagnosisData.expiryDate,
+        });
+      } catch (e) {
+        console.warn('診断入力の保存に失敗しました（続行します）:', e);
+      }
+
       // ai-chat.tsxに診断データを渡して遷移
       router.push({
         pathname: '/(tabs)/diagnosis/ai-chat',
@@ -89,7 +102,7 @@ export default function DiagnosisScreen() {
         }
       })
       
-      // TODO: 実際のAPIを呼び出してSupabaseに保存
+      // TODO: 実APIでの保存（必要に応じて）
       
     } catch (error) {
       Alert.alert('エラー', '予期しないエラーが発生しました')
@@ -102,7 +115,7 @@ export default function DiagnosisScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-          <Text style={styles.saveButtonText}>保存する</Text>
+          <Text style={styles.saveButtonText}>診断する</Text>
           <Text style={styles.saveButtonArrow}>→</Text>
         </TouchableOpacity>
       </View>
