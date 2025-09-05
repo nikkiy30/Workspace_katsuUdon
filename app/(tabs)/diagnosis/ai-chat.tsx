@@ -88,7 +88,11 @@ export default function AiChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([])
-  const [quickReplies, setQuickReplies] = useState<string[]>([])
+  // 固定サジェストの内容
+  const [quickReplies, setQuickReplies] = useState<string[]>([
+    '消費できるレシピを教えて',
+    '使用計画を考えて'
+  ])
 
   // 初回読み込み時にAI分析を実行(.onappear)
   useEffect(() => {
@@ -186,7 +190,11 @@ ${dbData.wasteRecords.length > 0 ?
       setAllMessages([initialMessage])
       
       // メッセージ入力の上にあるタップでちょろっと質問できるやつ
-      await generateQuickReplies(analysisResult)
+      // 固定サジェストを設定
+      setQuickReplies([
+        '消費できるレシピを教えて',
+        '使用計画を考えて'
+      ])
     } catch (error) {
       console.error('AI分析エラー:', error)
       const errorMessage: ChatMessage = {
@@ -202,41 +210,41 @@ ${dbData.wasteRecords.length > 0 ?
     }
   }
 
-  // サジェスト生成する源のやつ
-  const generateQuickReplies = async (aiResponse: string) => {
-    try {
-      const prompt = `
-以下のAI診断結果を読んで、ユーザーが聞きそうな追加質問を3つ提案してください。
-各質問は簡潔で、一般的なフォローアップの内容にしてください。
+// サジェスト生成する源のやつ
+//   const generateQuickReplies = async (aiResponse: string) => {
+//     try {
+//       const prompt = `
+// 以下のAI診断結果を読んで、ユーザーが聞きそうな追加質問を3つ提案してください。
+// 各質問は簡潔で、一般的なフォローアップの内容にしてください。
 
-AI診断結果：
-${aiResponse}
+// AI診断結果：
+// ${aiResponse}
 
-3つの質問を以下の形式で出力してください（必ず3行で、余計な文字は含めないでください）（以下の質問内容は例なので必ずしもこの質問である必要はなく，ユーザーが聞きそうな質問事項にする事を優先してください）：
-もっと詳しい保存方法を教えて
-代替レシピを提案して
-同じ食材での過去の廃棄記録は？
-`
+// 3つの質問を以下の形式で出力してください（必ず3行で、余計な文字は含めないでください）（以下の質問内容は例なので必ずしもこの質問である必要はなく，ユーザーが聞きそうな質問事項にする事を優先してください）：
+// もっと詳しい保存方法を教えて
+// 代替レシピを提案して
+// 同じ食材での過去の廃棄記録は？
+// `
 
-      const response = await genAI.models.generateContent({
-        model: 'gemini-2.5-flash-lite',
-        contents: prompt,
-      })
+//       const response = await genAI.models.generateContent({
+//         model: 'gemini-2.5-flash-lite',
+//         contents: prompt,
+//       })
 
-      const suggestionsText = response.text?.trim() || ''
-      const suggestions = suggestionsText.split('\n').filter(line => line.trim().length > 0).slice(0, 3)
+//       const suggestionsText = response.text?.trim() || ''
+//       const suggestions = suggestionsText.split('\n').filter(line => line.trim().length > 0).slice(0, 3)
       
-      setQuickReplies(suggestions)
-    } catch (error) {
-      console.error('クイック返信生成エラー:', error)
-      // デフォルトの質問を設定
-      setQuickReplies([
-        'もっと詳しい保存方法を教えて',
-        '代替レシピを提案して',
-        '購入量を調整するアドバイスをください'
-      ])
-    }
-  }
+//       setQuickReplies(suggestions)
+//     } catch (error) {
+//       console.error('クイック返信生成エラー:', error)
+//       // デフォルトの質問を設定
+//       setQuickReplies([
+//         'もっと詳しい保存方法を教えて',
+//         '代替レシピを提案して',
+//         '購入量を調整するアドバイスをください'
+//       ])
+//     }
+//   }
 
   //! 手入力の質問時
   // リプライ返信の時に実行されるやつ
@@ -308,8 +316,11 @@ ${allMessages.map(msg =>
       setMessages(prev => [...prev, aiResponse])
       setAllMessages(prev => [...prev, aiResponse])
       
-      // 新しいクイック返信を生成
-      await generateQuickReplies(response.text ?? '')
+      // 固定サジェストを復元
+      setQuickReplies([
+        '消費できるレシピを教えて',
+        '使用計画を考えて'
+      ])
     } catch (error) {
       console.error('AI応答エラー:', error)
       const errorResponse: ChatMessage = {
@@ -348,14 +359,79 @@ ${allMessages.map(msg =>
       // データベースからデータを取得
       const dbData = getDatabaseData()
       
-      // Gemini APIで追加質問に答える
-      const followUpPrompt = `
+      // 質問タイプに応じた専用プロンプトを生成
+      let followUpPrompt = ''
+      
+      if (replyText === '消費できるレシピを教えて') {
+        followUpPrompt = `
+あなたは料理のエキスパートです。以下の食材を使って、簡単で実用的なレシピを提案してください。
+
+【対象食材】
+食材名：${diagnosisData.foodName}
+購入予定量：${diagnosisData.amount}
+${diagnosisData.expiryType === 'best_before' ? '賞味期限' : '消費期限'}：${diagnosisData.expiryDate}
+備考：${diagnosisData.notes || 'なし'}
+
+【ユーザープロフィール】
+世帯人数：${dbData.profile.household_size}
+自炊頻度：${dbData.profile.cooking_frequency}
+買い物の頻度：${dbData.profile.shopping_frequency}
+
+【過去の廃棄履歴】
+${dbData.wasteRecords.length > 0 ? 
+  dbData.wasteRecords.map(record => 
+    `食材名:${record.food_name} 購入量:${record.buy_amount} 廃棄量:${record.throw_amount} 日付:${record.created_at.split('T')[0]}`
+  ).join('\n') : 
+  '廃棄記録がありません'}
+
+【会話履歴】
+${allMessages.map(msg => `${msg.isUser ? 'ユーザー' : 'AI'}：${msg.text}`).join('\n')}
+
+食材を用いたレシピをいくつか提案してください．
+出力は長くなりすぎないように工夫してください．
+
+具体的で実践しやすいレシピを提案してください．
+
+`
+      } else if (replyText === '使用計画を考えて') {
+        followUpPrompt = `
+あなたは食品ロス防止アドバイザーです。以下の食材の効率的な使用計画を立ててください。
+
+【対象食材】
+食材名：${diagnosisData.foodName}
+購入予定量：${diagnosisData.amount}
+${diagnosisData.expiryType === 'best_before' ? '賞味期限' : '消費期限'}：${diagnosisData.expiryDate}
+備考：${diagnosisData.notes || 'なし'}
+
+【ユーザープロフィール】
+世帯人数：${dbData.profile.household_size}
+自炊頻度：${dbData.profile.cooking_frequency}
+買い物の頻度：${dbData.profile.shopping_frequency}
+
+【過去の廃棄履歴】
+${dbData.wasteRecords.length > 0 ? 
+  dbData.wasteRecords.map(record => 
+    `食材名:${record.food_name} 購入量:${record.buy_amount} 廃棄量:${record.throw_amount} 日付:${record.created_at.split('T')[0]}`
+  ).join('\n') : 
+  '廃棄記録がありません'}
+
+【会話履歴】
+${allMessages.map(msg => `${msg.isUser ? 'ユーザー' : 'AI'}：${msg.text}`).join('\n')}
+
+食材の使用計画を提案してください
+出力は長くなりすぎないようにしてください．
+
+具体的で実践しやすい計画を提案してください。
+`
+      } else {
+        // デフォルトのプロンプト（将来的に他の質問が追加される場合）
+        followUpPrompt = `
 あなたは食品ロス防止アドバイザーです。
 
 前回の診断対象:
 食材名：${diagnosisData.foodName}
 購入予定量：${diagnosisData.amount}
-期限：${diagnosisData.expiryDate}
+${diagnosisData.expiryType === 'best_before' ? '賞味期限' : '消費期限'}：${diagnosisData.expiryDate}
 備考：${diagnosisData.notes || 'なし'}
 
 【プロフィール情報】
@@ -379,6 +455,7 @@ ${replyText}
 
 上記の情報に基づいて、ユーザーの質問に具体的で実用的な回答をしてください。
 `
+      }
 
       const response = await genAI.models.generateContent({
         model: 'gemini-2.5-flash-lite',
@@ -395,8 +472,11 @@ ${replyText}
       setMessages(prev => [...prev, aiResponse])
       setAllMessages(prev => [...prev, aiResponse])
       
-      // 新しいクイック返信を生成
-      await generateQuickReplies(response.text ?? '')
+      // 固定サジェストを復元
+      setQuickReplies([
+        '消費できるレシピを教えて',
+        '使用計画を考えて'
+      ])
     } catch (error) {
       console.error('AI応答エラー:', error)
       const errorResponse: ChatMessage = {
