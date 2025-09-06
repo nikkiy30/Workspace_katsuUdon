@@ -45,8 +45,8 @@ export default function WasteScreen() {
     },
     {
       id: 'purchase-amount',
-      label: '購入量、金額',
-      placeholder: '例)500円',
+      label: '購入量',
+      placeholder: '例)1000g',
       value: '',
     },
   ]);
