@@ -1,8 +1,9 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { ArrowRight, ShoppingBasket } from 'lucide-react-native';
+import { ArrowRight } from 'lucide-react-native';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -25,7 +26,11 @@ export default function WelcomeScreen() {
           {/* Logo/Icon area */}
           <View style={styles.iconContainer}>
             <View style={styles.iconBackground}>
-              <ShoppingBasket size={48} color="#156486" />
+              <Image 
+                source={require('@/assets/images/AppIcon.svg')}
+                style={styles.appIcon}
+                contentFit="contain"
+              />
             </View>
           </View>
 
@@ -114,6 +119,10 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.15,
     shadowRadius: 12,
+  },
+  appIcon: {
+    width: "80%",
+    height: "80%",
   },
   sparkleContainer: {
     position: 'absolute',

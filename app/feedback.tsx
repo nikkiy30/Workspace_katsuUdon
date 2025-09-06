@@ -2,7 +2,7 @@ import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
 import type { WasteRecord } from '@/database/types';
 import { GoogleGenAI } from '@google/genai';
-import { TrendingDown } from 'lucide-react-native';
+// import { TrendingDown } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
@@ -249,20 +249,20 @@ export default function FeedbackScreen() {
   - 玉ねぎ: 80g
   - パン: 6枚
 
-改善提案の要件:
-1. データに基づいた具体的な分析
-3. 食材別の具体的なアドバイス
-4. 前向きで励ましのメッセージ
+【出力要件】
 
-出力形式:
+- 廃棄データに基づいてユーザーが廃棄をしないためにできる行動を具体的に提案してください．
+
+【要望】
+
 - 簡潔で分かりやすい文章
 - 読みやすい1段落の文章
-- 50文字程度
+- 100文字程度
 - 箇条書きで書かないでください
 
-回答例:
-「今月の廃棄量は前月比12%減少と改善傾向にあります。特に野菜の廃棄が多めなので、購入前の冷蔵庫チェックと使い切りレシピの活用をお勧めします。肉類は適切な保存方法で鮮度を保ち、乳製品は少量パックを選ぶことで無駄を減らせます。小さな改善の積み重ねで、さらに良い結果が期待できます！」
 `;
+// 回答例:
+// 「今月の廃棄量は前月比12%減少と改善傾向にあります。特に野菜の廃棄が多めなので、購入前の冷蔵庫チェックと使い切りレシピの活用をお勧めします。肉類は適切な保存方法で鮮度を保ち、乳製品は少量パックを選ぶことで無駄を減らせます。小さな改善の積み重ねで、さらに良い結果が期待できます！」
 
       const response = await genAI.models.generateContent({
         model: 'gemini-2.5-flash-lite',
