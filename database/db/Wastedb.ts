@@ -82,6 +82,37 @@ export class WasteDB {
   }
 
   /**
+   * 今月の廃棄記録を取得
+   */
+  public getCurrentMonthWasteRecords(): WasteRecord[] {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const yearMonth = `${year}-${month}`;
+      
+      const sql = `
+        SELECT * FROM waste_records 
+        WHERE strftime('%Y-%m', created_at) = ? 
+        ORDER BY created_at DESC
+      `;
+      const result = this.db.getAllSync(sql, [yearMonth]) as any;
+      
+      return result.map((row: any) => ({
+        id: row.id,
+        food_name: row.food_name,
+        throw_amount: row.throw_amount,
+        buy_amount: row.buy_amount,
+        cost: row.cost || 0,
+        created_at: row.created_at,
+      }));
+    } catch (error) {
+      console.error('今月の廃棄記録取得エラー:', error);
+      return [];
+    }
+  }
+
+  /**
    * 今日の廃棄コストの合計を取得
    */
   public getTodayTotalCost(): number {

@@ -233,21 +233,29 @@ export default function FeedbackScreen() {
       const currentCard = monthlyData[monthlyData.length - 1];
       const monthlyTotal = currentCard?.total ?? 0;
       const w = currentCard?.weeklyData ?? [0, 0, 0, 0];
+      
+      // 前月比を取得
+      const comparisonText = currentCard?.comparison ?? '—';
+      
+      // SQLiteで今月の廃棄データを直接取得
+      const wasteDB = new WasteDB();
+      const currentMonthWaste = wasteDB.getCurrentMonthWasteRecords();
+      
+      // 廃棄物の内訳を作成
+      const wasteBreakdown = currentMonthWaste.length > 0 
+        ? currentMonthWaste.map(r => `  - ${r.food_name}: ${r.throw_amount}`).join('\n')
+        : '  - 今月は廃棄記録がありません';
+
       const prompt = `
 あなたは食品廃棄削減の専門家です。
 以下の廃棄データを分析して、具体的で実用的な改善提案を日本語で提供してください。
 
 廃棄データ:
 - 今月の廃棄回数: ${monthlyTotal}回
-- 先月比: -12% ↓
+- 前月比: ${comparisonText}
 - 週次データ: 第1週(${w[0]}回), 第2週(${w[1]}回), 第3週(${w[2]}回), 第4週(${w[3]}回)
 - 廃棄物の内訳:
-  - 鶏むね肉: 200g
-  - ブロッコリー: 150g
-  - 牛乳: 500ml
-  - トマト: 100g
-  - 玉ねぎ: 80g
-  - パン: 6枚
+${wasteBreakdown}
 
 【出力要件】
 
