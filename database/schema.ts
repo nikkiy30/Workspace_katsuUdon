@@ -30,6 +30,21 @@ export class DatabaseSchema {
   }
 
   /**
+   * デモ用：テーブル作成とダミーデータ挿入
+   */
+  public createTablesWithDummyData(): void {
+    try {
+      this.createProfileTable();
+      this.resetWasteRecordsTable(); // ダミーデータ付きで再作成
+      this.createDiagnosisEntriesTable();
+      console.log('デモ用テーブルとダミーデータの作成が完了しました');
+    } catch (error) {
+      console.error('デモ用テーブル作成エラー:', error);
+      throw error;
+    }
+  }
+
+  /**
    * ユーザープロフィールテーブル
    */
   private createProfileTable(): void {
@@ -138,6 +153,140 @@ export class DatabaseSchema {
     } catch (error) {
       console.error('テーブル削除エラー:', error);
       throw error;
+    }
+  }
+
+  /**
+   * waste_recordsテーブルのみを削除して再作成（デモ用）
+   */
+  public resetWasteRecordsTable(): void {
+    try {
+      this.db.execSync('DROP TABLE IF EXISTS waste_records');
+      console.log('waste_recordsテーブルを削除しました');
+      this.createWasteRecordsTable();
+      this.insertDummyWasteData();
+      console.log('waste_recordsテーブルを再作成し、ダミーデータを挿入しました');
+    } catch (error) {
+      console.error('waste_recordsテーブル再作成エラー:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ダミーの廃棄記録データを挿入（デモ用）
+   */
+  private insertDummyWasteData(): void {
+    const dummyData = [
+      {
+        food_name: '人参',
+        throw_amount: '1本',
+        buy_amount: '3本',
+        cost: 150,
+        created_at: '2025-01-02 10:30:00'
+      },
+      {
+        food_name: '牛乳',
+        throw_amount: '500ml',
+        buy_amount: '1000ml',
+        cost: 200,
+        created_at: '2025-01-05 14:20:00'
+      },
+      {
+        food_name: 'もやし',
+        throw_amount: '1袋',
+        buy_amount: '2袋',
+        cost: 80,
+        created_at: '2025-01-08 09:15:00'
+      },
+      {
+        food_name: '豚肉',
+        throw_amount: '200g',
+        buy_amount: '500g',
+        cost: 350,
+        created_at: '2025-01-12 16:45:00'
+      },
+      {
+        food_name: 'レタス',
+        throw_amount: '半玉',
+        buy_amount: '1玉',
+        cost: 120,
+        created_at: '2025-01-15 11:10:00'
+      },
+      {
+        food_name: '卵',
+        throw_amount: '2個',
+        buy_amount: '10個',
+        cost: 180,
+        created_at: '2025-01-18 08:30:00'
+      },
+      {
+        food_name: 'きゅうり',
+        throw_amount: '1本',
+        buy_amount: '4本',
+        cost: 100,
+        created_at: '2025-01-22 13:20:00'
+      },
+      {
+        food_name: '鶏肉',
+        throw_amount: '300g',
+        buy_amount: '800g',
+        cost: 450,
+        created_at: '2025-01-25 17:50:00'
+      },
+      {
+        food_name: 'トマト',
+        throw_amount: '2個',
+        buy_amount: '5個',
+        cost: 200,
+        created_at: '2025-01-28 12:15:00'
+      },
+      {
+        food_name: 'パン',
+        throw_amount: '3枚',
+        buy_amount: '8枚',
+        cost: 150,
+        created_at: '2025-02-01 19:30:00'
+      }
+    ];
+
+    for (const data of dummyData) {
+      const sql = `
+        INSERT INTO waste_records (food_name, throw_amount, buy_amount, cost, created_at)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+      this.db.runSync(sql, [
+        data.food_name,
+        data.throw_amount,
+        data.buy_amount,
+        data.cost,
+        data.created_at
+      ]);
+    }
+    console.log(`${dummyData.length}件のダミー廃棄記録を挿入しました`);
+  }
+
+  /**
+   * デモ用：現在のデータを確認
+   */
+  public getWasteRecordsCount(): number {
+    try {
+      const result = this.db.getFirstSync('SELECT COUNT(*) as count FROM waste_records') as any;
+      return result?.count || 0;
+    } catch (error) {
+      console.error('廃棄記録数取得エラー:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * デモ用：全ての廃棄記録を取得
+   */
+  public getAllWasteRecords(): any[] {
+    try {
+      return this.db.getAllSync('SELECT * FROM waste_records ORDER BY created_at DESC');
+    } catch (error) {
+      console.error('廃棄記録取得エラー:', error);
+      return [];
     }
   }
 
