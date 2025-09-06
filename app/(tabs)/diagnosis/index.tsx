@@ -16,6 +16,7 @@ import {
   View,
 } from 'react-native'
 import { Colors } from '../../../constants/Colors'
+import { Calendar } from 'lucide-react-native'
 
 export default function DiagnosisScreen() {
   const router = useRouter()
@@ -174,13 +175,13 @@ export default function DiagnosisScreen() {
               {expiryType === 'best_before' ? '賞味期限' : '消費期限'}
             </Text> */}
             <TouchableOpacity
-              style={styles.dateInput}
+              style={styles.datePickerButton}
               onPress={() => setShowDatePicker((prev) => !prev)}
             >
-              <Text style={styles.dateText}>
+              <Calendar size={20} color={Colors.light.primary} />
+              <Text style={styles.datePickerText}>
                 {formatDate(expiryDate)}
               </Text>
-              <Text style={styles.dateIcon}>📅</Text>
             </TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
@@ -269,25 +270,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     color: Colors.light.primary,
   },
-  dateInput: {
-    borderWidth: 2,
-    borderColor: Colors.light.primary,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: '#f8fafc',
+  // AddFoodModal の日付ピッカーボタンに揃える
+  datePickerButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    gap: 12,
   },
-  dateText: {
+  datePickerText: {
     fontSize: 16,
-    color: Colors.light.primary,
-    fontWeight: '500',
-  },
-  dateIcon: {
-    fontSize: 18,
-    opacity: 0.7,
+    color: '#20556C',
+    flex: 1,
   },
   notesInput: {
     borderWidth: 2,
