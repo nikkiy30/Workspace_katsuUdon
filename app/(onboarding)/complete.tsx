@@ -35,7 +35,7 @@ export default function CompleteScreen() {
         />
 
         <Text style={styles.description}>
-          さあ、CHOPとあなただけの{'\n'}フードロス削減プランを始めましょう！
+          さあ、Chopとあなただけの{'\n'}フードロス削減プランを始めましょう！
         </Text>
         
         <TouchableOpacity style={styles.button} onPress={handleGoToMain}>

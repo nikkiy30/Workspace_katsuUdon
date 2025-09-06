@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
-import { ArrowRight, ChefHat } from 'lucide-react-native';
+import { ArrowRight, ShoppingBasket } from 'lucide-react-native';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -25,7 +25,7 @@ export default function WelcomeScreen() {
           {/* Logo/Icon area */}
           <View style={styles.iconContainer}>
             <View style={styles.iconBackground}>
-              <ChefHat size={48} color="#156486" />
+              <ShoppingBasket size={48} color="#156486" />
             </View>
           </View>
 
@@ -41,7 +41,7 @@ export default function WelcomeScreen() {
             {/* Description */}
             <ThemedText style={styles.description}>
               毎日の買い物から買った食材の使い切りまで、{'\n'}
-              あなたに合わせてCHOPが賢くサポートします{'\n'}
+              あなたに合わせてChopが賢くサポートします{'\n'}
             </ThemedText>
           </View>
         </View>
