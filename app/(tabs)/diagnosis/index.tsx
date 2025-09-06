@@ -1,3 +1,4 @@
+import { DiagnosisDB } from '@/database/db/Diagnosisdb'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as Localization from 'expo-localization'
 import { useRouter } from 'expo-router'
@@ -15,7 +16,6 @@ import {
   View,
 } from 'react-native'
 import { Colors } from '../../../constants/Colors'
-import { DiagnosisDB } from '@/database/db/Diagnosisdb';
 
 export default function DiagnosisScreen() {
   const router = useRouter()
@@ -128,7 +128,7 @@ export default function DiagnosisScreen() {
               style={styles.input}
               value={foodName}
               onChangeText={setFoodName}
-              placeholder="例) 卵"
+              placeholder="例) 鶏むね肉"
               placeholderTextColor="#a0a0a0"
             />
           </View>
@@ -139,7 +139,7 @@ export default function DiagnosisScreen() {
               style={styles.input}
               value={amount}
               onChangeText={setAmount}
-              placeholder="例) M 10個"
+              placeholder="例) 1000g"
               placeholderTextColor="#a0a0a0"
             />
           </View>

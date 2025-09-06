@@ -569,7 +569,7 @@ ${replyText}
 
   const handleBack = () => {
     // 会話履歴がある場合のみAlertを表示
-    if (messages.length > 1) {
+    if (messages.length > 0) {
       Alert.alert(
         '確認',
         '戻ると現在の会話履歴が失われます',

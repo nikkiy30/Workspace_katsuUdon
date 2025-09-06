@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { Colors } from '@/constants/Colors';
+import { DiagnosisDB } from '@/database/db/Diagnosisdb';
+import { useFocusEffect } from '@react-navigation/native';
+import { ChefHat, Plus, RotateCcw } from 'lucide-react-native';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  Alert,
+  Dimensions,
+  Platform,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Platform,
-  Dimensions,
-  Alert,
+  View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useFocusEffect } from '@react-navigation/native';
-import { Plus, ChefHat, CircleAlert as AlertCircle, RotateCcw } from 'lucide-react-native';
-import FoodSuggestionCards from './FoodSuggestionCards';
-import { DiagnosisDB } from '@/database/db/Diagnosisdb';
-import AddFoodModal from './AddFoodModal';
-import UsageDateModal from './UsageDateModal';
-import { FoodItem, MarkedDates } from './foodTypes';
-import { getFoodItems, saveFoodItem, clearFoodItems, updateFoodItem } from './foodStorage';
-import { Colors } from '@/constants/Colors';
-import TagActionButton from './TagActionButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AddFoodModal from './AddFoodModal';
+import FoodSuggestionCards from './FoodSuggestionCards';
+import TagActionButton from './TagActionButton';
+import UsageDateModal from './UsageDateModal';
+import { clearFoodItems, getFoodItems, saveFoodItem, updateFoodItem } from './foodStorage';
+import { FoodItem, MarkedDates } from './foodTypes';
 
 const { width } = Dimensions.get('window');
 
@@ -212,17 +212,37 @@ export default function CalendarScreen() {
     itemId: string,
     field: 'usageDate' | 'expiryDate'
   ) => {
-    try {
-      const updates: Partial<FoodItem> =
-        field === 'usageDate' ? { usageDate: undefined } : { expiryDate: undefined };
-      await updateFoodItem(itemId, updates);
-      const updatedItems = foodItems.map((it) =>
-        it.id === itemId ? { ...it, ...updates } : it
-      );
-      setFoodItems(updatedItems);
-    } catch (e) {
-      Alert.alert('削除エラー', '削除に失敗しました。もう一度お試しください。');
-    }
+    const fieldText = field === 'usageDate' ? '使用予定' : '消費期限';
+    const foodItem = foodItems.find(item => item.id === itemId);
+    const foodName = foodItem?.name || '食材';
+    
+    Alert.alert(
+      '確認',
+      `「${foodName}」の${fieldText}を削除しますか？`,
+      [
+        {
+          text: 'キャンセル',
+          style: 'cancel',
+        },
+        {
+          text: '削除',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updates: Partial<FoodItem> =
+                field === 'usageDate' ? { usageDate: undefined } : { expiryDate: undefined };
+              await updateFoodItem(itemId, updates);
+              const updatedItems = foodItems.map((it) =>
+                it.id === itemId ? { ...it, ...updates } : it
+              );
+              setFoodItems(updatedItems);
+            } catch (e) {
+              Alert.alert('削除エラー', '削除に失敗しました。もう一度お試しください。');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const formatJPDate = (dateStr: string) => {
