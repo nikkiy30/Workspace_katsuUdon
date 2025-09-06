@@ -208,6 +208,7 @@ export default function FeedbackScreen() {
     backgroundGradientFrom: '#FFFFFF',
     backgroundGradientTo: '#FFFFFF',
     color: (opacity = 1) => `rgba(21, 100, 134, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(32, 85, 108, ${opacity})`,
     strokeWidth: 0,
     barPercentage: 0.7,
     decimalPlaces: 0,
@@ -326,7 +327,6 @@ export default function FeedbackScreen() {
     return (
       <View style={styles.combinedCard}>
         <View style={styles.totalHeader}>
-          <TrendingDown size={24} color="#EF4444" />
           <Text style={styles.totalLabel}>{data.label}の廃棄回数</Text>
         </View>
         <View style={styles.totalRow}>
@@ -355,7 +355,9 @@ export default function FeedbackScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>フィードバック</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>廃棄記録</Text>
+          </View>
           <Text style={styles.headerSubtitle}>今月の廃棄データ</Text>
         </View>
 
@@ -433,6 +435,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
+  badge: {
+    width: 198,
+    height: 48,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 20,
+  },
   totalCard: {
     backgroundColor: '#FFFFFF',
     padding: 24,
@@ -470,13 +484,13 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#20556C',
     marginLeft: 8,
   },
   totalAmount: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#20556C',
     marginRight: 16,
   },
   totalInfo: {
@@ -485,7 +499,7 @@ const styles = StyleSheet.create({
   },
   totalUnit: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#20556C',
     marginBottom: 4,
   },
   totalComparison: {
@@ -565,21 +579,21 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   suggestionCard: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#E6F5FB',
     padding: 20,
     borderRadius: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#F59E0B',
+    borderLeftColor: '#BBEBFF',
   },
   suggestionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#92400E',
+    color: '#20556C',
     marginBottom: 8,
   },
   suggestionText: {
     fontSize: 14,
-    color: '#92400E',
+    color: '#20556C',
     lineHeight: 20,
   },
   suggestionHeader: {
@@ -605,7 +619,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#92400E',
+    color: '#20556C',
     fontStyle: 'italic',
   },
   cardsScrollView: {
@@ -631,7 +645,7 @@ const styles = StyleSheet.create({
   wasteListTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#20556C',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -652,17 +666,17 @@ const styles = StyleSheet.create({
   wasteItemName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: '#20556C',
     flex: 1,
   },
   wasteItemAmount: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#156486',
+    color: '#20556C',
   },
   wasteItemDate: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#ABC5D0',
   },
 });
 
@@ -671,19 +685,19 @@ const markdownStyles = {
   body: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#92400E',
+    color: '#20556C',
   },
   heading1: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#92400E',
+    color: '#20556C',
   },
   heading2: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#92400E',
+    color: '#20556C',
   },
   paragraph: {
     marginBottom: 8,
@@ -691,7 +705,7 @@ const markdownStyles = {
   },
   strong: {
     fontWeight: '600' as const,
-    color: '#92400E',
+    color: '#20556C',
   },
   list_item: {
     marginBottom: 4,

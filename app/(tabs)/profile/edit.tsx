@@ -124,7 +124,7 @@ export default function ProfileEditScreen() {
           {/* 世帯人数 */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-            <Users size={22} color="#156486" />
+            <Users size={22} color="#20556C" />
             <Text style={styles.label}>世帯人数</Text>
             </View>
             <TouchableOpacity
@@ -139,7 +139,7 @@ export default function ProfileEditScreen() {
               <Text style={styles.selectorText}>
                 {getDisplayValue(householdOptions, profile.household_size)}
               </Text>
-              <ChevronDown size={20} color="#4a5568" />
+              <ChevronDown size={20} color="#20556C" />
             </TouchableOpacity>
           </View>
 
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1a1a1a',
+    color: '#20556C',
     // marginBottom: 12,
     marginLeft: 12,
   },

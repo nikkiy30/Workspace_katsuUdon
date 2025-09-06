@@ -89,7 +89,7 @@ export default function FoodSuggestionCards({ suggestions, onExpiryAdd, onCustom
                 <Text style={styles.quantity}> ({item.quantity})</Text>
               </Text>
               <Text style={styles.expiryInline}>
-                消費期限: {item.expiryDate
+                期限: {item.expiryDate
                   ? new Date(item.expiryDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
                   : getDefaultExpiryDate()}
               </Text>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: '#20556C',
     marginLeft: 8,
   },
   scrollView: {
@@ -208,19 +208,19 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#20556C',
     marginBottom: 4,
   },
   quantity: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#6b7280',
+    color: '#ABC5D0',
     marginBottom: 8,
   },
   expiryInline: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: '#ABC5D0',
   },
   expiryInfo: {
     flexDirection: 'row',

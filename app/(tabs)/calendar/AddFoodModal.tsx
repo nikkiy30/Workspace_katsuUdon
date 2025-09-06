@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#20556C',
   },
   saveButton: {
     width: 40,
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: '#20556C',
     marginBottom: 8,
   },
   textInput: {
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#374151',
+    color: '#20556C',
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   },
   datePickerText: {
     fontSize: 16,
-    color: '#374151',
+    color: '#20556C',
     flex: 1,
   },
   addDateButton: {
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#20556C',
     marginBottom: 4,
   },
   sectionSubtitle: {

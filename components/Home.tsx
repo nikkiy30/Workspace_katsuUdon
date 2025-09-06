@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   cardSmallText: {
     fontSize: 8,
-    color: '#B4C5C5',
+    color: '#ABC5D0',
     textAlign: "center",
     paddingHorizontal: 16,
     lineHeight: 18,

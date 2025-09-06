@@ -67,7 +67,12 @@ export default function UsageDateModal({
 
   React.useEffect(() => {
     if (selectedItem && visible) {
-      setExpiryDate(getDefaultExpiryDate());
+      // サジェストに消費期限がある場合はそれを優先的に使用
+      if (selectedItem.expiryDate) {
+        setExpiryDate(selectedItem.expiryDate);
+      } else {
+        setExpiryDate(getDefaultExpiryDate());
+      }
     }
   }, [selectedItem, visible]);
 
@@ -248,9 +253,7 @@ export default function UsageDateModal({
           {/* カスタム日付選択 */}
           <View style={styles.customDateSection}>
             <Text style={styles.sectionTitle}>使用予定を追加</Text>
-            <Text style={styles.sectionSubtitle}>
-              特定の日付を指定したい場合
-            </Text>
+
             
           <View style={styles.customDateContainer}>
             <TouchableOpacity
@@ -323,7 +326,7 @@ export default function UsageDateModal({
                       onPress={() => removeUsageDate(date)}
                       style={styles.removeDateButton}
                     >
-                      <X size={16} color="#ef4444" />
+                      <X size={16} color="#FF7B53" />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -335,7 +338,7 @@ export default function UsageDateModal({
                     <View style={styles.expirySection}>
             <View style={styles.expiryHeader}>
               <View style={styles.expiryTitleContainer}>
-                <AlertCircle size={20} color="#f59e0b" />
+                <AlertCircle size={20} color="#20556C" />
                 <Text style={styles.sectionTitle}>消費期限も追加する</Text>
               </View>
               <Switch
@@ -398,13 +401,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#20556C',
   },
   saveButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#10b981',
+    backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -433,18 +436,18 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: '#20556C',
   },
   itemQuantity: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#6b7280',
+    color: '#20556C',
   },
   itemExpiry: {
     marginTop: 4,
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.light.primary,
+    color: "#20556C",
   },
   categoryBadge: {
     alignSelf: 'flex-start',
@@ -491,7 +494,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#20556C',
     marginBottom: 4,
   },
   sectionSubtitle: {
@@ -629,12 +632,12 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   expirySection: {
-    backgroundColor: '#fef3cd',
+    backgroundColor: '#E6F5FB',
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
     borderLeftWidth: 4,
-    borderLeftColor: '#f59e0b',
+    borderLeftColor: '#BBEBFF',
   },
   expiryHeader: {
     flexDirection: 'row',

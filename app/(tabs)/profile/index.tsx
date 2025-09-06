@@ -148,7 +148,9 @@ export default function ProfileScreen() {
         {/* ヘッダー */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>プロフィール情報</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>プロフィール情報</Text>
+            </View>
           </View>
         </View>
 
@@ -254,6 +256,18 @@ const styles = StyleSheet.create({
     color: '#156486',
     marginBottom: 6,
   },
+  badge: {
+    width: 198,
+    height: 48,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 20,
+  },
   profileContainer: {
     flex: 1,
     paddingHorizontal: 16,
@@ -289,7 +303,7 @@ const styles = StyleSheet.create({
   profileLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#1a1a1a',
+    color: '#20556C',
     marginLeft: 12,
   },
   selectorContainer: {
@@ -307,7 +321,7 @@ const styles = StyleSheet.create({
   },
   selectorText: {
     fontSize: 17,
-    color: '#111827',
+    color: '#20556C',
     fontWeight: '600',
     flex: 1,
   },

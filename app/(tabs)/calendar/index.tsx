@@ -260,8 +260,9 @@ export default function CalendarScreen() {
       {/* ヘッダー */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <ChefHat size={28} color={Colors.light.primary} />
-          <Text style={styles.headerTitle}>食材カレンダー</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>食材カレンダー</Text>
+          </View>
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
@@ -339,17 +340,17 @@ export default function CalendarScreen() {
             theme={{
               backgroundColor: '#ffffff',
               calendarBackground: '#ffffff',
-              textSectionTitleColor: '#374151',
+              textSectionTitleColor: '#20556C',
               selectedDayBackgroundColor: Colors.light.primary,
               selectedDayTextColor: '#ffffff',
               todayTextColor: Colors.light.primary,
-              dayTextColor: '#374151',
+              dayTextColor: '#20556C',
               textDisabledColor: '#d1d5db',
               dotColor: Colors.light.primary,
               selectedDotColor: '#ffffff',
               arrowColor: Colors.light.primary,
               disabledArrowColor: '#d1d5db',
-              monthTextColor: '#111827',
+              monthTextColor: '#20556C',
               indicatorColor: Colors.light.primary,
               textDayFontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
               textMonthFontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
@@ -475,8 +476,20 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
+    color: '#20556C',
     marginLeft: 12,
+  },
+  badge: {
+    width: 198,
+    height: 48,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 20,
   },
   resetButton: {
     backgroundColor: '#ffff',
@@ -596,7 +609,7 @@ const styles = StyleSheet.create({
   selectedDateTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: '#20556C',
     marginBottom: 12,
   },
   noEventsText: {
@@ -618,11 +631,11 @@ const styles = StyleSheet.create({
   foodItemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
+    color: '#20556C',
   },
   foodItemQuantity: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#ABC5D0',
     marginTop: 2,
   },
   foodItemDates: {

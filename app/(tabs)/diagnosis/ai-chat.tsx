@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   backButtonText: {
-    color: '#2563eb',
+    color: '#039ADA',
     fontSize: 16,
   },
   content: {
@@ -789,12 +789,12 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#2563eb',
+    borderColor: '#ffffff',
   },
   diagnosisLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2d3748',
+    color: '#20556C',
     marginBottom: 12,
   },
   diagnosisContent: {
@@ -803,11 +803,11 @@ const styles = StyleSheet.create({
   foodInfo: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2d3748',
+    color: '#20556C',
   },
   expiryInfo: {
     fontSize: 14,
-    color: '#4a5568',
+    color: '#ABC5D0',
   },
   noteInfo: {
     fontSize: 14,
@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   aiIcon: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#039ADA',
     borderRadius: 16,
     width: 32,
     height: 32,
@@ -887,7 +887,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   aiText: {
-    color: '#2d3748',
+    color: '#20556C',
   },
   usertimestamp: {
     fontSize: 10,
@@ -935,9 +935,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#f9fafb',
     maxHeight: 100,
+    color: '#20556C',
   },
   sendButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#039ADA',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
@@ -970,7 +971,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   quickReplyText: {
-    color: '#475569',
+    color: '#20556C',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -1038,19 +1039,19 @@ const markdownStyles = {
   body: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#2d3748',
+    color: '#20556C',
   },
   heading1: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#1a202c',
+    color: '#20556C',
   },
   heading2: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#1a202c',
+    color: '#20556C',
   },
   paragraph: {
     marginBottom: 8,
@@ -1058,7 +1059,7 @@ const markdownStyles = {
   },
   strong: {
     fontWeight: '600' as const,
-    color: '#1a202c',
+    color: '#20556C',
   },
   list_item: {
     marginBottom: 4,
@@ -1071,5 +1072,6 @@ const markdownStyles = {
     padding: 2,
     borderRadius: 4,
     fontFamily: 'monospace',
+    color: '#20556C',
   },
 }
