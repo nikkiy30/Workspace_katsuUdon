@@ -1,43 +1,41 @@
-# 🥬 Chop - 食品ロス防止アプリ
+# Chop - AI買い物サポートアプリ
 
-**買い物前のAI診断で，食品ロスを根本から解決**
+> ## 🛒 **買い物前の賢明な判断が私たちの明日（みらい）を良くする**
+
+**買い物前のAI診断で，食品の廃棄を改善するアプリです**
 
 Chopは，**購入前の段階でAIがアドバイス**を提供し，食品ロスを未然に防ぐアプリです.
 
 「この食材は本当に必要？」「この量で使い切れる？」そんな疑問をAIが解決.
 あなたの廃棄履歴と生活パターンを学習し，**買い物前の的確な判断**をサポートします.
 
-[![React Native](https://img.shields.io/badge/React%20Native-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactnative.dev/)
-[![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 
 ## ✨ 主な機能
 
-### 🛒 購入前AI診断（メイン機能）
+### 🛒 購入前AI診断
 - **買い物前の賢い判断**: 食材名，量，期限を入力するだけでAIが購入推奨度を判定
-- **過去の廃棄履歴を分析**: あなたの購入・廃棄パターンから最適なアドバイスを提供
-- **視覚的な推奨度表示**: 一目でわかる星評価システム（★☆☆ = 控えめに，★★★ = 安心して購入）
-- **具体的な購入アドバイス**: 「半分の量にしましょう」「冷凍保存を検討」など実践的な提案
+- **過去の廃棄履歴を分析**: ユーザーの廃棄パターンから最適なアドバイスを提供
+- **視覚的な推奨度表示**: 一目でわかる星評価システム（★☆☆ = 購入非推奨，★★★ = 安心して購入）
+- **AIチャット機能**: チャット形式でAIに続けて質問可能
 
 ### 📊 廃棄記録・学習システム
 - **購入判断の精度向上**: 廃棄した食材を記録してAIの判断精度を向上
 - **改善効果の可視化**: 購入前診断による食品ロス削減効果をグラフで表示
 
 ### 📅 食材管理カレンダー
-- **使用予定管理**: 購入した食材の使用計画を立てられる
+- **使用予定管理**: 購入した食材の使用計画を記録
 
 ### 💬 AIチャット
-- **レシピ提案**: 手持ちの食材から最適なレシピを提案
-- **使用計画**: 効率的な食材使用スケジュールを作成
+- **文脈を踏まえたチャット**: AIの診断結果やチャットの会話の文脈を踏まえた回答
+- **質問サジェスト**: テンプレートからワンタップで質問ができます
 
-## 🎯 こんな人におすすめ
+## 🎯 対象ユーザー
 
 - 🛒 **衝動買いしがちな方**: 「とりあえず買っておこう」を見直したい
 - 🗑️ **食材を余らせがちな方**: 「いつも同じ食材を捨ててしまう」
 - � **食費を節約したい方**: 無駄な買い物を減らして家計改善
+- 📱 **効率的な買い物をしたい方**: AIの力で賢い買い物をしたい方
 - 🌱 **環境意識の高い方**: 食品ロス削減で地球に貢献
-- 📱 **効率的な買い物をしたい方**: AIの力で賢い消費者になりたい
 
 ## 🔄 Chopのサイクル
 
@@ -49,46 +47,27 @@ Chopは，**購入前の段階でAIがアドバイス**を提供し，食品ロ�
 5. ↻ 繰り返し → 段々と食品ロスが減少
 ```
 
-**継続的な改善サイクルで，あなたの買い物習慣を最適化します**
-
-## 🚀 技術スタック
-
-- **フロントエンド**: React Native + Expo Router
-- **言語**: TypeScript
-- **データベース**: SQLite (expo-sqlite)
-- **AI**: Google Gemini API
-- **ストレージ**: AsyncStorage + SQLite
-
-<!-- ## 📱 スクリーンショット -->
-
-<!-- デモ動画や画像をここに追加予定 -->
-
-<!-- ### オンボーディング
-<img src="assets/images/exp1.png" height="500" width="400">
-
-*シンプルで分かりやすい初期設定* -->
-
-## 🏗️ アーキテクチャー
-
-### データフロー
 ```
 🛒 購入検討 → AI診断 → 推奨度判定 → 購入決定
     ↓              ↑
 📝 廃棄記録 → 学習データ蓄積 → 次回精度向上
 ```
+**継続的な改善サイクルで，あなたの買い物習慣を最適化します**
 
-**購入前の判断を核とした改善サイクル**
+## 🚀 技術スタック
 
-### AI統合
-- **購入前特化型AI**: 買い物シーンに最適化されたプロンプト設計
-- **個人化学習**: ユーザーの廃棄パターンから購入判断を個別最適化
-- **ハイブリッド判定**: JSON構造化データ + テキスト解析
-- **フォールバック機能**: 確実な結果出力を保証
+[![React Native](https://img.shields.io/badge/React%20Native-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+- **フロントエンド**: React Native + Expo 
+- **言語**: TypeScript
+- **データベース**: SQLite (expo-sqlite)
+- **ストレージ**: AsyncStorage + SQLite
 
 
+## 📜 ライセンス
 
-## 📄 ライセンス
+[GNU GENERAL PUBLIC LICENSE Version 3](https://github.com/yudo417/TeXcellentConverter/blob/main/LICENSE) 
 
-このプロジェクトはMITライセンスの下で公開されています.
 
-**🛒 買い物前の一瞬の判断が，持続可能な未来を作る**
