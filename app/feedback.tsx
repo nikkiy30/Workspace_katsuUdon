@@ -338,8 +338,8 @@ export default function FeedbackScreen() {
         </View>
         <BarChart
           data={weeklyDataForMonth}
-          width={screenWidth - 60}
-          height={110}
+          width={screenWidth - 75}
+          height={164}
           chartConfig={chartConfig}
           style={styles.chart}
           showValuesOnTopOfBars={false}
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
   chart: {
     borderRadius: 12,
     marginVertical: 8,
-    marginLeft: -8,
+    marginLeft: -10,
   },
   categoryList: {
     marginTop: 20,
@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   cardsScrollView: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   cardsScrollContainer: {
     paddingHorizontal: 0,
