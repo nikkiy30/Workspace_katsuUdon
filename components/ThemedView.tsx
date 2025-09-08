@@ -1,14 +1,32 @@
+import { Colors } from '@/constants/Colors';
 import { View, type ViewProps } from 'react-native';
-
-import { useThemeColor } from '@/hooks/useThemeColor';
 
 export type ThemedViewProps = ViewProps & {
   lightColor?: string;
-  darkColor?: string;
+  type?: 'default' | 'secondary' | 'sub' | 'card';
 };
 
-export function ThemedView({ style, lightColor, darkColor, ...otherProps }: ThemedViewProps) {
-  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+// テーマに応じたビューコンポーネント
+export function ThemedView({ 
+  style, 
+  lightColor, 
+  type = 'default',
+  ...otherProps 
+}: ThemedViewProps) {
+  const backgroundColor = lightColor || getBackgroundColor(type);
 
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }
+
+const getBackgroundColor = (type: ThemedViewProps['type']): string => {
+  switch (type) {
+    case 'secondary':
+      return Colors.light.background;
+    case 'sub':
+      return Colors.light.sub;
+    case 'card':
+      return Colors.light.base;
+    default:
+      return Colors.light.background;
+  }
+};

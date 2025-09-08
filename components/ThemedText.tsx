@@ -1,21 +1,19 @@
+import { Colors } from '@/constants/Colors';
 import { StyleSheet, Text, type TextProps } from 'react-native';
-
-import { useThemeColor } from '@/hooks/useThemeColor';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
-  darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link' | 'secondary' | 'tertiary';
 };
 
+// テーマに応じたテキストコンポーネント
 export function ThemedText({
   style,
   lightColor,
-  darkColor,
   type = 'default',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = Colors.light.primary;
 
   return (
     <Text
@@ -26,12 +24,27 @@ export function ThemedText({
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
         type === 'subtitle' ? styles.subtitle : undefined,
         type === 'link' ? styles.link : undefined,
+        type === 'secondary' ? styles.secondary : undefined,
+        type === 'tertiary' ? styles.tertiary : undefined,
         style,
       ]}
       {...rest}
     />
   );
 }
+
+const getTextColor = (type: ThemedTextProps['type']): string => {
+  switch (type) {
+    case 'secondary':
+      return Colors.light.textSecondary;
+    case 'tertiary':
+      return Colors.light.textTertiary;
+    case 'link':
+      return Colors.light.primary;
+    default:
+      return Colors.light.text;
+  }
+};
 
 const styles = StyleSheet.create({
   default: {
@@ -52,9 +65,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  secondary: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  tertiary: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
   link: {
     lineHeight: 30,
     fontSize: 16,
-    color: '#0a7ea4',
   },
 });
