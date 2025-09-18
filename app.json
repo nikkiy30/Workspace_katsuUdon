@@ -4,12 +4,16 @@
     "slug": "katsuUdon-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/AppIcon.svg",
+    "icon": "./assets/images/AppIcon.png",
     "scheme": "katsuudonapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yudo417.katsuUdonapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +32,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/AppIcon",
+          "image": "./assets/images/AppIcon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#fff"
@@ -39,6 +43,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "66657bed-2520-4d54-8700-c807fc3decce"
+      }
     }
   }
 }
