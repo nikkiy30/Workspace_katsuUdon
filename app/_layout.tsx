@@ -19,9 +19,9 @@ export default function RootLayout() {
     const initializeDatabase = async () => {
       try {
         const schema = new DatabaseSchema();
-        // schema.createTables();
+        schema.createTables();
         // console.log('データベース初期化完了');
-        schema.createTablesWithDummyData();
+        // schema.createTablesWithDummyData();
         console.log('ダミーデータ挿入完了');
 
       } catch (error) {

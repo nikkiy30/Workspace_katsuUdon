@@ -18,7 +18,7 @@ export class DatabaseSchema {
     try {
       this.createProfileTable();
       this.createWasteRecordsTable();
-      this.migrateWasteRecordsTable(); // マイグレーション実行
+      // this.migrateWasteRecordsTable();  マイグレーション実行はたぶん不要
       // 任意のテーブル（必要に応じて拡張）
       // this.createFoodItemsTable();
       this.createDiagnosisEntriesTable();
