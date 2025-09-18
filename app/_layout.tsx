@@ -19,7 +19,10 @@ export default function RootLayout() {
       try {
         const schema = new DatabaseSchema();
         schema.createTables();
-        console.log('ダミーデータ挿入完了');
+        // console.log('データベース初期化完了');
+        // schema.createTablesWithDummyData();
+        // console.log('ダミーデータ挿入完了');
+
       } catch (error) {
         console.error('データベース初期化エラー:', error);
       }
