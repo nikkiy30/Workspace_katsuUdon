@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Chop",
+    "name": "Chop - フードロス削減アプリ",
     "slug": "katsuUdon-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/AppIcon.png",
+    "icon": "./assets/images/AppIcon2.png",
     "scheme": "katsuudonapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.yudo417.katsuUdonapp",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDisplayName": "Chop"
       }
     },
     "android": {
@@ -32,7 +33,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/AppIcon.png",
+          "image": "./assets/images/AppIcon2.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#fff"
