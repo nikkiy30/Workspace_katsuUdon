@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import { DiagnosisDB } from '@/database/db/Diagnosisdb';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import { ChefHat, Plus, RotateCcw } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import {

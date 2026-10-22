@@ -153,7 +153,7 @@ export default function WasteScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <StatusBar style="dark" backgroundColor="#fafeff" />
+      <StatusBar style="dark" />
       
       <SafeAreaView style={styles.safeArea}>
         <ScrollView 
