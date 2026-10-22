@@ -1,6 +1,6 @@
 # Chop - AI買い物サポートアプリ
 
-**🎉[Tornado 2025](https://tornado-official.jp/)にて最優秀賞を受賞　🎉**
+**🎉[Tornadoハッカソン2025](https://tornado-official.jp/)にて最優秀賞を受賞　🎉**
 
 ## 🛒 **買い物前の賢明な判断が私たちの明日（みらい）を良くする**
 
