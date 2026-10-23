@@ -3,7 +3,7 @@ import { ThemedView } from "@/components/ThemedView";
 import Toast from '@/components/Toast';
 import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router/react-navigation";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";

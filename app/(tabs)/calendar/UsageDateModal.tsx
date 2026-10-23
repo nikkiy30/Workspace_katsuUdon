@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   overlayBackground: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.15)',
   },
   pickerCard: {
