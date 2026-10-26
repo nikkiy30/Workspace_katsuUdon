@@ -2,10 +2,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
+import { useCallback, useRef, useState } from 'react';
 import {
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -23,15 +25,44 @@ const shoppingOptions = [
 ];
 
 export default function Question3() {
-  const { answers, updateAnswer, saveToProfile } = useOnboarding();
+  const { answers, updateAnswer, saveToProfile, isComplete } = useOnboarding();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const savingRef = useRef(false);
+  const isActiveRef = useRef(true);
+  useFocusEffect(useCallback(() => {
+    isActiveRef.current = true;
+    setIsSaving(savingRef.current);
+    return () => { isActiveRef.current = false; };
+  }, []));
   const selectedOption = answers.shoppingFrequency;
 
   const handleNext = async () => {
-    if (selectedOption) {
-      // プロフィールにデータを保存
+    if (savingRef.current) return;
+    if (!isComplete()) {
+      setSaveError('まだ回答していない質問があります。戻って回答を確認してください。');
+      return;
+    }
+    savingRef.current = true;
+    setIsSaving(true);
+    setSaveError(null);
+    let didNavigate = false;
+    try {
       const success = await saveToProfile();
-      if (success) {
-        router.push('/(onboarding)/complete');
+      if (success && isActiveRef.current) {
+        router.replace('/(onboarding)/complete');
+        didNavigate = true;
+      } else if (!success && isActiveRef.current) {
+        setSaveError('保存できませんでした。回答はそのままです。もう一度お試しください。');
+      }
+    } catch {
+      if (isActiveRef.current) {
+        setSaveError('保存できませんでした。回答はそのままです。もう一度お試しください。');
+      }
+    } finally {
+      if (!didNavigate) {
+        savingRef.current = false;
+        if (isActiveRef.current) setIsSaving(false);
       }
     }
   };
@@ -47,11 +78,16 @@ export default function Question3() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         {/* 左矢印 */}
         <TouchableOpacity 
             style={styles.backButton} 
             onPress={handleBack}
+            disabled={isSaving}
+            accessibilityRole="button"
+            accessibilityLabel="前の質問に戻る"
+            accessibilityState={{ disabled: isSaving }}
           >
           <ArrowLeft size={24} color="#156486" />
         </TouchableOpacity>
@@ -81,6 +117,9 @@ export default function Question3() {
                 selectedOption === option && styles.optionButtonSelected
               ]}
               onPress={() => handleOptionSelect(option)}
+              disabled={isSaving}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: selectedOption === option, disabled: isSaving }}
             >
               <ThemedText
                 style={[
@@ -96,24 +135,32 @@ export default function Question3() {
 
         {/* Next Button */}
         <View style={styles.buttonContainer}>
+          {saveError && (
+            <ThemedText accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.errorText}>
+              {saveError}
+            </ThemedText>
+          )}
           <TouchableOpacity
             style={[
               styles.nextButton,
-              !selectedOption && styles.nextButtonDisabled
+              (!selectedOption || isSaving) && styles.nextButtonDisabled
             ]}
             onPress={handleNext}
-            disabled={!selectedOption}
+            disabled={!selectedOption || isSaving}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !selectedOption || isSaving, busy: isSaving }}
           >
             <ThemedText
               style={[
                 styles.nextButtonText,
-                !selectedOption && styles.nextButtonTextDisabled
+                (!selectedOption || isSaving) && styles.nextButtonTextDisabled
               ]}
             >
-              次へ　＞
+              {isSaving ? '保存しています…' : saveError ? 'もう一度保存する' : '回答を保存する'}
             </ThemedText>
           </TouchableOpacity>
         </View>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -156,6 +203,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   backButton: {
     padding: 8,
@@ -200,6 +250,11 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingBottom: 20,
     paddingHorizontal: 40,
+  },
+  errorText: {
+    color: '#a31f34',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   nextButton: {
     backgroundColor: Colors.light.primary,

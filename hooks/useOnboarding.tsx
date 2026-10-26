@@ -1,15 +1,9 @@
 import { UserDB } from '@/database/db/Userdb';
-import { Profile } from '@/database/types';
+import { hasAllAnswers, OnboardingAnswers, persistOnboardingAnswers, readOnboardingCompletion } from '@/services/onboardingPersistence';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 const ONBOARDING_KEY = 'hasCompletedOnboarding';
-
-interface OnboardingAnswers {
-  householdSize: string;
-  cookingFrequency: string;
-  shoppingFrequency: string;
-}
 
 interface OnboardingContextType {
   // 回答関連
@@ -21,6 +15,8 @@ interface OnboardingContextType {
   // 状態管理関連
   hasCompleted: boolean | null;
   isLoading: boolean;
+  statusError: boolean;
+  retryStatus: () => Promise<void>;
   markAsCompleted: () => Promise<void>;
   resetOnboarding: () => Promise<void>;
 }
@@ -38,6 +34,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   // 完了状態
   const [hasCompleted, setHasCompleted] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [statusError, setStatusError] = useState(false);
 
   // アプリ起動時にオンボーディング状態を確認
   useEffect(() => {
@@ -45,12 +42,15 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkOnboardingStatus = async () => {
+    setIsLoading(true);
+    setStatusError(false);
     try {
-      const value = await AsyncStorage.getItem(ONBOARDING_KEY);
-      setHasCompleted(value === 'true');
+      const completed = await readOnboardingCompletion(() => AsyncStorage.getItem(ONBOARDING_KEY));
+      setHasCompleted(completed);
     } catch (error) {
       console.error('オンボーディング状態の確認エラー:', error);
-      setHasCompleted(false);
+      setHasCompleted(null);
+      setStatusError(true);
     } finally {
       setIsLoading(false);
     }
@@ -65,24 +65,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const saveToProfile = async (): Promise<boolean> => {
     try {
-      if (!answers.householdSize || !answers.cookingFrequency || !answers.shoppingFrequency) {
-        console.error('すべての質問に回答してください');
-        return false;
-      }
-
-      const userDB = new UserDB();
-      const profile: Profile = {
-        household_size: answers.householdSize,
-        cooking_frequency: answers.cookingFrequency,
-        shopping_frequency: answers.shoppingFrequency,
-      };
-
-      userDB.saveProfile(profile);
-      console.log('オンボーディング回答をプロフィールに保存しました:', profile);
-      
-      // 保存成功時に完了状態もマークする
-      await markAsCompleted();
-      return true;
+      return await persistOnboardingAnswers(answers, {
+        saveProfile: (profile) => new UserDB().saveProfile(profile),
+        markCompleted: markAsCompleted,
+      });
     } catch (error) {
       console.error('プロフィール保存エラー:', error);
       return false;
@@ -90,17 +76,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   };
 
   const isComplete = (): boolean => {
-    return !!(answers.householdSize && answers.cookingFrequency && answers.shoppingFrequency);
+    return hasAllAnswers(answers);
   };
 
   const markAsCompleted = async () => {
-    try {
-      await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
-      setHasCompleted(true);
-      console.log('オンボーディングが完了としてマークされました');
-    } catch (error) {
-      console.error('オンボーディング完了マークエラー:', error);
-    }
+    await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+    setHasCompleted(true);
   };
 
   const resetOnboarding = async () => {
@@ -127,6 +108,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       isComplete,
       hasCompleted,
       isLoading,
+      statusError,
+      retryStatus: checkOnboardingStatus,
       markAsCompleted,
       resetOnboarding,
     }}>

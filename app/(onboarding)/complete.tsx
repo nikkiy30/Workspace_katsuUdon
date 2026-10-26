@@ -1,7 +1,6 @@
 import { CompletedIcon } from '@/components/CompletedIcon'
 import { Colors } from '@/constants/Colors'
 import { useRouter } from 'expo-router'
-import { useEffect } from 'react'
 import {
   StyleSheet,
   Text,
@@ -11,15 +10,6 @@ import {
 
 export default function CompleteScreen() {
   const router = useRouter()
-
-  useEffect(() => {
-    // 3秒後に自動的にメイン画面に遷移
-    const timer = setTimeout(() => {
-      router.replace('/(tabs)')
-    }, 3000)
-
-    return () => clearTimeout(timer)
-  }, [router])
 
   const handleGoToMain = () => {
     router.replace('/(tabs)')
@@ -35,15 +25,15 @@ export default function CompleteScreen() {
         />
 
         <Text style={styles.description}>
-          さあ、Chopとあなただけの{'\n'}フードロス削減プランを始めましょう！
+          使いきれなかった食材があれば、{'\n'}ホームの「廃棄入力」から記録できます。
         </Text>
         
-        <TouchableOpacity style={styles.button} onPress={handleGoToMain}>
-          <Text style={styles.buttonText}>アプリを始める</Text>
+        <TouchableOpacity style={styles.button} onPress={handleGoToMain} accessibilityRole="button">
+          <Text style={styles.buttonText}>ホームへ進む</Text>
         </TouchableOpacity>
         
-        <Text style={styles.autoRedirect}>
-          3秒後に自動的に画面が切り替わります
+        <Text style={styles.note}>
+          記録するものがなくても、そのまま始められます。
         </Text>
       </View>
     </View>
@@ -80,7 +70,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    color: '#718096',
+    color: '#4a5568',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 48,
@@ -99,9 +89,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  autoRedirect: {
-    fontSize: 12,
-    color: '#a0aec0',
+  note: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#4a5568',
     textAlign: 'center',
   },
 })
