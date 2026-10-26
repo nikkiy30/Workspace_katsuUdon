@@ -2,38 +2,26 @@ import { UserDB } from '@/database/db/Userdb'
 import { Profile } from '@/database/types'
 import { router } from 'expo-router'
 import { ChevronDown, CookingPot, ShoppingCart, Users } from 'lucide-react-native'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { ActionSheetIOS, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function ProfileEditScreen() {
-  const [profile, setProfile] = useState<Profile>({
-    household_size: "1人",
-    cooking_frequency: "週3回",
-    shopping_frequency: "週3回",
-  })
-  const [loading, setLoading] = useState(false)
-  const userDB = new UserDB()
-
-  // 既存プロフィールを読み込み
-  useEffect(() => {
-    loadProfile()
-  }, [])
-
-  const loadProfile = async () => {
+  const [userDB] = useState(() => new UserDB())
+  const [profile, setProfile] = useState<Profile>(() => {
     try {
-      const savedProfile = userDB.getProfile()
-      if (savedProfile) {
-        setProfile({
-          household_size: savedProfile.household_size || '1人',
-          cooking_frequency: savedProfile.cooking_frequency || '週3回',
-          shopping_frequency: savedProfile.shopping_frequency || '週1回'
-        })
+      const saved = userDB.getProfile()
+      if (saved) return {
+        household_size: saved.household_size || '1人',
+        cooking_frequency: saved.cooking_frequency || '週3回',
+        shopping_frequency: saved.shopping_frequency || '週1回',
       }
     } catch (error) {
       console.error('プロフィール読み込みエラー:', error)
     }
-  }
+    return { household_size: '1人', cooking_frequency: '週3回', shopping_frequency: '週3回' }
+  })
+  const [loading, setLoading] = useState(false)
 
   // 選択肢の定義
   const householdOptions = [

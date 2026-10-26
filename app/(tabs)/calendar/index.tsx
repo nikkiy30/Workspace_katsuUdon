@@ -21,35 +21,23 @@ import FoodSuggestionCards from './FoodSuggestionCards';
 import TagActionButton from './TagActionButton';
 import UsageDateModal from './UsageDateModal';
 import { clearFoodItems, getFoodItems, saveFoodItem, updateFoodItem } from './foodStorage';
-import { FoodItem, MarkedDates } from './foodTypes';
+import { FoodItem } from './foodTypes';
+import { buildMarkedDates } from '@/utils/calendarMarkers';
 
 const { width } = Dimensions.get('window');
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [today, setToday] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(today);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [markedDates, setMarkedDates] = useState<MarkedDates>({});
+  const markedDates = buildMarkedDates(foodItems, selectedDate, today, Colors.light.primary);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUsageDateModal, setShowUsageDateModal] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<FoodItem | null>(null);
   const [suggestions, setSuggestions] = useState<FoodItem[]>([]);
 
-  useEffect(() => {
-    loadFoodItems();
-    loadSuggestionsFromDB();
-  }, []);
-
-  // 画面に戻ってきたタイミングでサジェストを再読込
-  useFocusEffect(
-    useCallback(() => {
-      loadSuggestionsFromDB();
-    }, [])
-  );
-
-  const loadSuggestionsFromDB = () => {
+  const loadSuggestionsFromDB = useCallback(() => {
     try {
       const db = new DiagnosisDB();
       const entries = db.getRecentEntries(10);
@@ -63,64 +51,18 @@ export default function CalendarScreen() {
     } catch (e) {
       console.warn('サジェストの読み込みに失敗:', e);
     }
-  };
+  }, []);
 
-  // 選択日やデータが変わったらマーキングを最新化
   useEffect(() => {
-    updateMarkedDates(foodItems, selectedDate);
-  }, [foodItems, selectedDate]);
+    let active = true;
+    getFoodItems().then(items => { if (active) setFoodItems(items); });
+    return () => { active = false; };
+  }, []);
 
-  const loadFoodItems = async () => {
-    const items = await getFoodItems();
-    setFoodItems(items);
-  };
-
-  const updateMarkedDates = (items: FoodItem[], selected: string = selectedDate) => {
-    const marked: MarkedDates = {};
-
-    items.forEach((item) => {
-      // 使用予定日のマーキング
-      if (item.usageDate) {
-        if (!marked[item.usageDate]) {
-          marked[item.usageDate] = { dots: [], marked: true };
-        }
-        marked[item.usageDate].dots?.push({
-          color: Colors.light.primary,
-          selectedDotColor: '#ffffff',
-        });
-      }
-      // 消費期限のマーキング
-      if (item.expiryDate) {
-        const today = new Date().toISOString().split('T')[0];
-        const isExpired = item.expiryDate < today;
-        
-        if (!marked[item.expiryDate]) {
-          marked[item.expiryDate] = { dots: [], marked: true };
-        }
-        marked[item.expiryDate].dots?.push({
-          color: isExpired ? '#ef4444' :'#FF7B53',
-          selectedDotColor: '#ffffff',
-        });
-      }
-    });
-
-    // 選択された日付のハイライト
-    if (marked[selected]) {
-      marked[selected] = {
-        ...marked[selected],
-        selected: true,
-        selectedColor: Colors.light.primary,
-      };
-    } else {
-      marked[selected] = {
-        selected: true,
-        selectedColor: Colors.light.primary,
-        dots: [],
-      };
-    }
-
-    setMarkedDates(marked);
-  };
+  useFocusEffect(useCallback(() => {
+    loadSuggestionsFromDB();
+    setToday(new Date().toISOString().split('T')[0]);
+  }, [loadSuggestionsFromDB]));
 
   const handleAddFood = async (item: Omit<FoodItem, 'id'>) => {
     const newItem: FoodItem = {
