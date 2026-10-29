@@ -4,7 +4,7 @@ import type { WasteRecord } from '@/database/types';
 import { GoogleGenAI } from '@google/genai';
 // import { TrendingDown } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, ScrollView, type ScrollViewInstance, StyleSheet, Text, View } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import Markdown from 'react-native-markdown-display';
 
@@ -16,7 +16,7 @@ const genAI = new GoogleGenAI({ apiKey: apiKey });
 
 export default function FeedbackScreen() {
   // ScrollViewのref
-  const scrollViewRef = React.useRef<ScrollView>(null);
+  const scrollViewRef = React.useRef<ScrollViewInstance>(null);
 
   // 月次カードデータ型
   type MonthlyCard = {

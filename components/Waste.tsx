@@ -12,6 +12,7 @@ import {
   Alert,
   SafeAreaView,
   ScrollView,
+  type ScrollViewInstance,
   StyleSheet,
   TextInput,
   TouchableOpacity
@@ -29,7 +30,7 @@ const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenAI({ apiKey: apiKey });
 
 export default function WasteScreen() {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const [inputFields, setInputFields] = useState<InputField[]>([
     {
       id: 'food-item',
