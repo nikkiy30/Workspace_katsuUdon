@@ -39,22 +39,17 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [hasCompleted, setHasCompleted] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // アプリ起動時にオンボーディング状態を確認
   useEffect(() => {
-    checkOnboardingStatus();
+    let active = true;
+    AsyncStorage.getItem(ONBOARDING_KEY)
+      .then(value => { if (active) setHasCompleted(value === 'true'); })
+      .catch(error => {
+        console.error('オンボーディング状態の確認エラー:', error);
+        if (active) setHasCompleted(false);
+      })
+      .finally(() => { if (active) setIsLoading(false); });
+    return () => { active = false; };
   }, []);
-
-  const checkOnboardingStatus = async () => {
-    try {
-      const value = await AsyncStorage.getItem(ONBOARDING_KEY);
-      setHasCompleted(value === 'true');
-    } catch (error) {
-      console.error('オンボーディング状態の確認エラー:', error);
-      setHasCompleted(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const updateAnswer = (key: keyof OnboardingAnswers, value: string) => {
     setAnswers(prev => ({

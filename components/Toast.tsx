@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import { CheckCircle } from 'lucide-react-native';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
 
 interface ToastProps {
@@ -24,15 +24,14 @@ export const Toast: React.FC<ToastProps> = ({
   textColor = '#FFFFFF',
   icon = null
 }) => {
-  const translateY = useRef(new Animated.Value(100)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const [translateY] = useState(() => new Animated.Value(100));
+  const [opacity] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
-    console.log('Toast useEffect:', visible, message);
     if (visible) {
-      console.log('Showing toast animation');
+      let active = true;
       // トーストを表示
-      Animated.parallel([
+      const showing = Animated.parallel([
         Animated.timing(translateY, {
           toValue: 0,
           duration: 300,
@@ -43,42 +42,28 @@ export const Toast: React.FC<ToastProps> = ({
           duration: 300,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        console.log('Toast animation completed');
-      });
+      ]);
+      const hiding = Animated.parallel([
+        Animated.timing(translateY, { toValue: 100, duration: 300, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]);
+      showing.start();
 
       // 指定時間後にトーストを非表示
       const timer = setTimeout(() => {
-        console.log('Hiding toast after duration');
-        hideToast();
+        hiding.start(({ finished }) => {
+          if (active && finished) onHide?.();
+        });
       }, duration);
 
-      return () => clearTimeout(timer);
+      return () => {
+        active = false;
+        clearTimeout(timer);
+        showing.stop();
+        hiding.stop();
+      };
     }
-  }, [visible]);
-
-  const hideToast = () => {
-    console.log('Hiding toast');
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: 100,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      console.log('Toast hidden');
-      if (onHide) {
-        onHide();
-      }
-    });
-  };
-
-  console.log('Toast render:', visible, message);
+  }, [visible, message, duration, onHide, translateY, opacity]);
 
   return (
     <View style={styles.container} pointerEvents="none">

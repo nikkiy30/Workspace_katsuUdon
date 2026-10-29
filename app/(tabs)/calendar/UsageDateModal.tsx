@@ -34,7 +34,33 @@ interface Props {
   selectedItem: FoodItem | null;
 }
 
+// ローカルタイムゾーンで YYYY-MM-DD を生成（toISOStringはUTCになるため日付ズレが発生）
+function formatLocalYMD(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+function getDefaultExpiryDate() {
+  const today = new Date();
+  const days = 3; // カテゴリーなしのデフォルト
+  const expiry = new Date(today);
+  expiry.setDate(today.getDate() + days);
+  return formatLocalYMD(expiry);
+};
+
+
 export default function UsageDateModal({
+  visible,
+  selectedItem,
+  ...props
+}: Props) {
+  if (!visible || !selectedItem) return null;
+  return <UsageDateSession key={selectedItem.id} {...props} visible={visible} selectedItem={selectedItem} />;
+}
+
+function UsageDateSession({
   visible,
   onClose,
   onSave,
@@ -45,36 +71,9 @@ export default function UsageDateModal({
   const [usagePickerDate, setUsagePickerDate] = useState<Date>(new Date());
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [includeExpiry, setIncludeExpiry] = useState(true);
-  const [expiryDate, setExpiryDate] = useState('');
+  const [expiryDate] = useState(() => selectedItem?.expiryDate || getDefaultExpiryDate());
   const [usageAmountInput, setUsageAmountInput] = useState('');
   const [selectedUsages, setSelectedUsages] = useState<Record<string, string>>({});
-
-  // ローカルタイムゾーンで YYYY-MM-DD を生成（toISOStringはUTCになるため日付ズレが発生）
-  const formatLocalYMD = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  };
-
-  const getDefaultExpiryDate = () => {
-    const today = new Date();
-    const days = 3; // カテゴリーなしのデフォルト
-    const expiry = new Date(today);
-    expiry.setDate(today.getDate() + days);
-    return formatLocalYMD(expiry);
-  };
-
-  React.useEffect(() => {
-    if (selectedItem && visible) {
-      // サジェストに消費期限がある場合はそれを優先的に使用
-      if (selectedItem.expiryDate) {
-        setExpiryDate(selectedItem.expiryDate);
-      } else {
-        setExpiryDate(getDefaultExpiryDate());
-      }
-    }
-  }, [selectedItem, visible]);
 
   const getQuickDateOptions = () => {
     const today = new Date();
