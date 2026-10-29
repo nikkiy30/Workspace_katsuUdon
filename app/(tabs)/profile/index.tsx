@@ -17,13 +17,6 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(false)
   const userDB = new UserDB()
 
-  // 画面にフォーカスした時にプロフィールを再読み込み
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile()
-    }, [])
-  )
-
   const loadProfile = async () => {
     try {
       const savedProfile = userDB.getProfile()
@@ -38,6 +31,14 @@ export default function ProfileScreen() {
       console.error('プロフィール読み込みエラー:', error)
     }
   }
+
+  // 画面にフォーカスした時にプロフィールを再読み込み
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile()
+    }, [])
+  )
+
 
   // 選択肢の定義
   const householdOptions = [

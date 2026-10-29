@@ -3,7 +3,7 @@ import { WasteDB } from '@/database/db/Wastedb'
 import { GoogleGenAI } from '@google/genai'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -59,7 +59,7 @@ export default function AiChatScreen() {
   const [aiAnalysis, setAiAnalysis] = useState('')
   const [isFirstMessage, setIsFirstMessage] = useState(true)
   // AIが初手投げか否かのBoolean
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(() => !!(params.foodName && params.amount))
   const [keyboardVisible, setKeyboardVisible] = useState(false)
   const [keyboardHeight, setKeyboardHeight] = useState(0)
 
@@ -79,13 +79,13 @@ export default function AiChatScreen() {
     }
   }, [])
   
-  const diagnosisData = {
+  const [diagnosisData] = useState(() => ({
     foodName: params.foodName as string || '',
     amount: params.amount as string || '',
     expiryDate: params.expiryDate as string || '',
     expiryType: params.expiryType as 'best_before' | 'use_by' || 'best_before',
     notes: params.notes as string || ''
-  }
+  }))
   // messageはユーザーの初手メッセージ以外を記録（チャットののUIレンダリングに使用するためのやつ)
   // 全メッセージを記録してAIのプロンプトに使うので格納
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -144,17 +144,8 @@ export default function AiChatScreen() {
 
 
 
-  // 初回読み込み時にAI分析を実行(.onappear)
-  useEffect(() => {
-    if (diagnosisData.foodName && diagnosisData.amount) {
-      performAIAnalysis()
-    }
-  }, [])
-
   // AI初手投げの時に実行される
-  const performAIAnalysis = async () => {
-    setIsAnalyzing(true)
-    try {
+  const requestInitialAnalysis = useCallback(async (): Promise<ChatMessage> => {
       // データベースからデータを取得
       const dbData = getDatabaseData()
       
@@ -249,7 +240,6 @@ ${dbData.wasteRecords.length > 0 ?
       })
 
       const analysisResult = response.text ?? 'エラーが発生しました'
-      setAiAnalysis(analysisResult)
       
       // 初期メッセージのやつ
       const initialMessage: ChatMessage = {
@@ -259,31 +249,35 @@ ${dbData.wasteRecords.length > 0 ?
         timestamp: new Date(),
       }
       
-      // 全メッセージとその場のメッセージに追加
-      setMessages([initialMessage])
-      setAllMessages([initialMessage])
-      
-      // メッセージ入力の上にあるタップでちょろっと質問できるやつ
-      // 固定サジェストを設定
-      setQuickReplies([
-        '消費できるレシピを教えて',
-        '使用計画を考えて'
-      ])
-    } catch (error) {
-      console.error('AI分析エラー:', error)
-      const errorMessage: ChatMessage = {
-        id: Date.now().toString(),
-        text: 'AI分析に失敗しました。しばらくしてから再度お試しください。',
-        isUser: false,
-        timestamp: new Date(),
-      }
-      setMessages([errorMessage])
-      setAllMessages([errorMessage])
-    } finally {
-      //* AI初手投げBoolは最終的にここでfalseになり2投目以降はセーフ
-      setIsAnalyzing(false)
-    }
-  }
+      return initialMessage
+  }, [diagnosisData])
+
+  useEffect(() => {
+    if (!diagnosisData.foodName || !diagnosisData.amount) return
+    let active = true
+    requestInitialAnalysis()
+      .then(message => {
+        if (!active) return
+        setAiAnalysis(message.text)
+        setMessages([message])
+        setAllMessages([message])
+        setQuickReplies(['消費できるレシピを教えて', '使用計画を考えて'])
+      })
+      .catch(error => {
+        console.error('AI分析エラー:', error)
+        if (!active) return
+        const message: ChatMessage = {
+          id: Date.now().toString(),
+          text: 'AI分析に失敗しました。しばらくしてから再度お試しください。',
+          isUser: false,
+          timestamp: new Date(),
+        }
+        setMessages([message])
+        setAllMessages([message])
+      })
+      .finally(() => { if (active) setIsAnalyzing(false) })
+    return () => { active = false }
+  }, [diagnosisData, requestInitialAnalysis])
 
 // サジェスト生成する源のやつ
 //   const generateQuickReplies = async (aiResponse: string) => {
@@ -413,7 +407,7 @@ ${allMessages.map(msg =>
 
   //! ボタンからの質問時
   // 横スクロールのクイック返信ボタンを押したときに実行されるやつ
-  const handleQuickReply = async (replyText: string) => {
+  const handleQuickReply = useCallback(async (replyText: string) => {
     if (!replyText.trim()) return
 
     // ユーザーメッセージを追加
@@ -573,7 +567,7 @@ ${replyText}
     } finally {
       setLoading(false)
     }
-  }
+  }, [allMessages, diagnosisData])
 
   const handleBack = () => {
     // 会話履歴がある場合のみAlertを表示

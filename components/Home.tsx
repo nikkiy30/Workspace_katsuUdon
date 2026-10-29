@@ -3,11 +3,11 @@ import { ThemedView } from "@/components/ThemedView";
 import Toast from '@/components/Toast';
 import { Colors } from '@/constants/Colors';
 import { WasteDB } from '@/database/db/Wastedb';
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router/react-navigation";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Home as HomeIcon, MoreHorizontal, Trash2 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const navigationItems = [
@@ -29,32 +29,12 @@ export const Screen = () => {
   const [hasTodayWaste, setHasTodayWaste] = useState<boolean>(false);
   
   // Toast用のstate
-  const [showToast, setShowToast] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string>('');
-  const [toastIcon, setToastIcon] = useState<'check-circle' | null>(null);
-
-  // パラメータからToast表示の判定
-  useEffect(() => {
-    console.log('Home.tsx params:', params);
-    if (params.showToast === 'true' && params.toastMessage) {
-      console.log('Toast should show:', params.toastMessage);
-      setToastMessage(params.toastMessage as string);
-      setToastIcon(params.toastIcon as 'check-circle' | null || null);
-      setShowToast(true);
-    }
-  }, [params]);
-
-  // Toast表示後にパラメータをクリアする処理を分離
-  useEffect(() => {
-    if (showToast) {
-      console.log('Toast is now visible');
-      // 少し遅延してからパラメータをクリア
-      const timer = setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [showToast]);
+  const toastMessage = typeof params.toastMessage === 'string' ? params.toastMessage : '';
+  const showToast = params.showToast === 'true' && !!toastMessage;
+  const toastIcon = params.toastIcon === 'check-circle' ? 'check-circle' : null;
+  const hideToast = useCallback(() => {
+    router.setParams({ showToast: undefined, toastMessage: undefined, toastIcon: undefined });
+  }, []);
 
   // 今日の廃棄データを取得する関数
   const loadTodayWasteData = () => {
@@ -215,10 +195,7 @@ export const Screen = () => {
           message={toastMessage}
           visible={showToast}
           icon={toastIcon}
-          onHide={() => {
-            console.log('Toast onHide called');
-            setShowToast(false);
-          }}
+          onHide={hideToast}
           backgroundColor={Colors.light.primary}
           duration={3000}
         />
